@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="assets/me.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/me.png">
+<title>Maria Murray</title>
+<meta name="description" content="Maria Murray – personal portfolio">
+<style>
+  /* ===== CONFIG (colours) – the field reads these too ===== */
+  :root {
+    --c1: #FDBCB4; /* lightest – peak of the swell */
+    --c2: #DE3163;
+    --c3: #FB607F;
+    --c4: #800020; /* darkest – resting blocks   */
+    --bg: #0b0c10;
+    --letter-grey: #7a747d; /* filler letters on every other key */
+    --text: #f2e9ea;
+  }
+  html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .caption { position: fixed; left: 0; right: 0; bottom: 0; padding: 120px 32px 32px;
+    background: linear-gradient(to bottom, transparent, var(--bg) 70%); color: var(--text);
+    pointer-events: none; }
+  .caption h1 { margin: 0 0 8px; font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -0.03em; }
+  .caption p { margin: 0; max-width: 34rem; line-height: 1.55; opacity: .7; }
+  .sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); clip-path: inset(50%); border: 0; white-space: nowrap; }
+  .project { position: fixed; z-index: 5; box-sizing: border-box; overflow-y: auto; color: var(--text);
+    transform: translate(-50%, -50%); line-height: 1.45; padding: 4px 10px; background: rgba(11, 12, 16, .88); border-radius: 12px; text-align: left;
+    visibility: hidden; opacity: 0; transition: opacity .15s, visibility 0s .15s; }
+  .project.open { visibility: visible; opacity: 1; transition: opacity .4s, visibility 0s; }
+  .project h2 { margin: 0 0 .5em; font-size: 1.5em; letter-spacing: -0.02em; line-height: 1.2; }
+  .project h2:focus { outline: none; }
+  .project p { margin: 0 0 .7em; }
+  .project ul { margin: .8em 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: .4em 1.2em; }
+  .project a, .project button { color: var(--c3); }
+  .project button { display: block; margin: 0 auto; font: inherit; background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+  .project a:focus-visible, .project button:focus-visible { outline: 2px solid var(--c1); outline-offset: 3px; border-radius: 2px; }
+  @media (max-width: 640px) { .caption { padding: 120px 20px 24px; } }
+</style>
+</head>
+<body>
+<canvas id="c" aria-hidden="true"></canvas>
+<main class="caption">
+  <h1>Maria Murray</h1>
+  <p>Frontend engineer at an early-stage London startup: API integrations, real-time systems, customer-facing interfaces | Ice hockey @ Streatham Storm.</p>
+  <p class="sr">Interactive 3D isometric keyboard displaying projects and profile links. Navigate with Tab to explore each key.</p>
+  <nav id="links" class="sr" aria-label="Profiles and projects"></nav>
+</main>
+
+<section id="project" class="project" role="region" aria-labelledby="project-title">
+  <h2 id="project-title" tabindex="-1"></h2>
+  <div id="project-desc"></div>
+  <ul id="project-links"></ul>
+  <button type="button" id="project-back">&larr; Back</button>
+</section>
+
+<script>
+// ===== CONFIG (math vars and other settings) =====
+const NAME_TEXT = "MARIAMURRAY"; // filler letters are picked at random from this
+const MOBILE_MAX_WIDTH = 640;   // px
+const SPEED = 0.7;              // animation speed (1 = original)
+const CLICK_STRENGTH = 4;       // how hard a click/tap pulses
+const KEYS_Y_DESKTOP = 0.42;    // where the middle of the linked keys sits on desktop: 0 = top of screen, 1 = bottom
+const HOLE_RADIUS = 5;          // radius (in blocks) of the hole that opens for a project
+const DESKTOP_ROWS = 24;        // horizontal rows of keys filling the screen on desktop (fewer = bigger keys; was ~34)
+
+// Special keys, placed relative to the centre. at: [row, col] offset.
+// Keys are either 'text' or  clickable 'icon' + 'href' + 'label'
+const KEYS = [
+  { at: [-1, -1], text: "LINKS:", rotate: -45 },
+  { at: [-1, 0], icon: "github",   href: "https://github.com/mariammurray/", label: "GitHub", desc: "GitHub profile and repositories" },
+  { at: [0, -1], icon: "linkedin", href: "https://www.linkedin.com/in/maria-evm/", label: "LinkedIn", desc: "LinkedIn profile" },
+  { at: [1, 2],  text: "PROJ", rotate: -45 },
+  { at: [2, 1],  text: "ECTS:", rotate: -45 },
+  { at: [1, 3],  icon: "assets/wsls-logo.png",  href: "https://mariammurray.github.io/WSL-Fantasy-Stats/", label: "WSL Fantasy Stats", desc: "Women's Super League fantasy football statistics web app",
+    project: { title: "WSL Fantasy Dashboard",
+      body: ["To celebrate the first ever official WSL fantasy football game, I sifted through the network requests and minified JS bundles until I had enough data to make my own, auto-updating fun-fact dashboard.",
+        "Especially useful for spotlighting high-scoring WSL2 players who I might have missed otherwise, it starts with the players who scored the most while being selected the least (and vice versa), and includes superlatives like points per million £ pricetag and biggest change in ownership %.",
+        "I used GitHub Actions to automate taking data snapshots before/after gamedays and then trigger a re-render, so that I could host the whole thing on GitHub Pages. Standings from previous weeks can be toggled through at any time, and I made layouts which work for mobile and desktop."],
+      links: [["Site", "https://mariammurray.github.io/WSL-Fantasy-Stats/"], ["GitHub", "https://github.com/mariammurray/WSL-Fantasy-Stats"]] } },
+  { at: [2, 2],  icon: "assets/1d-logo.png",    href: "https://mariammurray.github.io/whoprobablywroteonit/", label: "Who Probably Wrote On It", desc: "Who Probably Wrote On It – interactive analysis app",
+    project: { title: "Who probably wrote on it? | An analysis of One Direction",
+      body: ["Using a very serious statistical analysis of One Direction writing credits, this site allows users to connect their spotify and submit their liked songs (or enter a public playlist) to determine which member of one direction's writing they truly like the best.",
+        "Repo contains an explanation of the harmonic points system, alphabetization considerations, and more information."],
+      links: [["Site", "https://mariammurray.github.io/whoprobablywroteonit/"], ["GitHub", "https://github.com/mariammurray/whoprobablywroteonit"]] } },
+  { at: [3, 1],  icon: "assets/brand-mark.png", href: "https://galactik.grnx.app/", label: "Grnx", desc: "Grnx web app",
+    project: { title: "GRN X Ltd – Frontend Developer (Contract)",
+      body: ["Built the frontend of a web platform from scratch for a pre-launch startup, shipping features including marketplace flows, multi-project tracking, user profiles/portfolios, and chat groups. Often delivering fixes same-day and building & iterating on larger features within weeks.",
+        "Consistently met deadlines for client and industry demos, translating founder mockups and specs directly into React/TypeScript code and writing tests to ensure they meet standards.",
+        "Integrated Stripe (for in-platform payments), Mapbox and 2 internal REST APIs with backend engineering, collaborating on architecture decisions across the stack."],
+      links: [["Grnx", "https://galactik.grnx.app/"]] } },
+];
+</script>
+<script src="field.js"></script>
+</body>
+</html>
