@@ -15,11 +15,12 @@
     --c3: #FB607F;
     --c4: #800020; /* darkest – resting blocks   */
     --bg: #0b0c10;
-    --letter-grey: #7a747d; /* filler letters on every other key */
+    --links: #fb859c;
+    --letter-grey: #5e565a; /* filler letters on every other key */
     --text: #f2e9ea;
   }
   html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden;
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif; }
   canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
   .caption { position: fixed; left: 0; right: 0; bottom: 0; padding: 120px 32px 32px;
     background: linear-gradient(to bottom, transparent, var(--bg) 70%); color: var(--text);
@@ -28,14 +29,14 @@
   .caption p { margin: 0; max-width: 34rem; line-height: 1.55; opacity: .7; }
   .sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); clip-path: inset(50%); border: 0; white-space: nowrap; }
   .project { position: fixed; z-index: 5; box-sizing: border-box; overflow-y: auto; color: var(--text);
-    transform: translate(-50%, -50%); line-height: 1.45; padding: 4px 10px; background: rgba(11, 12, 16, .88); border-radius: 12px; text-align: left;
+    transform: translate(-50%, -50%); line-height: 1.45; padding: 4px 10px; background: rgba(11, 12, 16, .88); border-radius: 12px; text-align: center;
     visibility: hidden; opacity: 0; transition: opacity .15s, visibility 0s .15s; }
   .project.open { visibility: visible; opacity: 1; transition: opacity .4s, visibility 0s; }
   .project h2 { margin: 0 0 .5em; font-size: 1.5em; letter-spacing: -0.02em; line-height: 1.2; }
   .project h2:focus { outline: none; }
   .project p { margin: 0 0 .7em; }
   .project ul { margin: .8em 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: .4em 1.2em; }
-  .project a, .project button { color: var(--c3); }
+  .project a, .project button { color: var(--links); }
   .project button { display: block; margin: 0 auto; font: inherit; background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
   .project a:focus-visible, .project button:focus-visible { outline: 2px solid var(--c1); outline-offset: 3px; border-radius: 2px; }
   @media (max-width: 640px) { .caption { padding: 120px 20px 24px; } }
@@ -66,15 +67,15 @@ const CLICK_STRENGTH = 4;       // how hard a click/tap pulses
 const KEYS_Y_DESKTOP = 0.42;    // where the middle of the linked keys sits on desktop: 0 = top of screen, 1 = bottom
 const HOLE_RADIUS = 5;          // radius (in blocks) of the hole that opens for a project
 const DESKTOP_ROWS = 24;        // horizontal rows of keys filling the screen on desktop (fewer = bigger keys; was ~34)
+const MOBILE_KEY_DIVISOR = 3.45; // screen width divisor for mobile keys (~10% bigger keys than 3.8; fewer = bigger)
 
 // Special keys, placed relative to the centre. at: [row, col] offset.
 // Keys are either 'text' or  clickable 'icon' + 'href' + 'label'
 const KEYS = [
-  { at: [-1, -1], text: "LINKS:", rotate: -45 },
+  { at: [-1, -1], text: "LINKS:", rotate: -45, fontSize: 40 },
   { at: [-1, 0], icon: "github",   href: "https://github.com/mariammurray/", label: "GitHub", desc: "GitHub profile and repositories" },
   { at: [0, -1], icon: "linkedin", href: "https://www.linkedin.com/in/maria-evm/", label: "LinkedIn", desc: "LinkedIn profile" },
-  { at: [1, 2],  text: "PROJ", rotate: -45 },
-  { at: [2, 1],  text: "ECTS:", rotate: -45 },
+  { at: [1, 1],  text: "WORK:", rotate: -45, fontSize: 40 },
   { at: [1, 3],  icon: "assets/wsls-logo.png",  href: "https://mariammurray.github.io/WSL-Fantasy-Stats/", label: "WSL Fantasy Stats", desc: "Women's Super League fantasy football statistics web app",
     project: { title: "WSL Fantasy Dashboard",
       body: ["To celebrate the first ever official WSL fantasy football game, I sifted through the network requests and minified JS bundles until I had enough data to make my own, auto-updating fun-fact dashboard.",
@@ -91,9 +92,12 @@ const KEYS = [
       body: ["Built the frontend of a web platform from scratch for a pre-launch startup, shipping features including marketplace flows, multi-project tracking, user profiles/portfolios, and chat groups. Often delivering fixes same-day and building & iterating on larger features within weeks.",
         "Consistently met deadlines for client and industry demos, translating founder mockups and specs directly into React/TypeScript code and writing tests to ensure they meet standards.",
         "Integrated Stripe (for in-platform payments), Mapbox and 2 internal REST APIs with backend engineering, collaborating on architecture decisions across the stack."],
-      links: [["Grnx", "https://galactik.grnx.app/"]] } },
+      links: [["Landing Page", "https://galactik.grnx.app/"],
+                ["Desktop Demo", "https://1drv.ms/v/c/9ecfc5d8fe34b33e/IQBr8_U_eu2fSopROEB40wPYASOHVAmQmc5shmAzw3Dn3TQ?e=LDC7kB"],
+                ["Mobile Demo", "https://1drv.ms/v/c/9ecfc5d8fe34b33e/IQB5N5bM0t35RqUQKmFx03g9AVMOuTfFbURACHqUiXOxte8?e=ayFmhz"]
+      ] } }
 ];
 </script>
-<script src="field.js"></script>
+<script src="field.js" defer></script>
 </body>
 </html>

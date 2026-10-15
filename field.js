@@ -10,10 +10,19 @@ const LETTER_GREY = cssVar("--letter-grey");
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
 const css = (c, k = 1) => `rgb(${c.map(v => Math.round(Math.min(255, v * k))).join(",")})`;
+const cssRgb = (c, k = 1) => {
+  const r = (c[0] * k + 0.5) | 0;
+  const g = (c[1] * k + 0.5) | 0;
+  const b = (c[2] * k + 0.5) | 0;
+  return `rgb(${r < 255 ? r : 255},${g < 255 ? g : 255},${b < 255 ? b : 255})`;
+};
 const BG = hex(BACKGROUND);
 // swell ramp runs from the darkest (rest) to the lightest (peak)
 const RAMP = COLORS.map(hex).reverse();
 const REST = mix(RAMP[0], BG, 0.78);
+const REST_LEFT = css(REST, 0.55);
+const REST_RIGHT = css(REST, 0.38);
+const REST_TOP = css(REST, 1);
 function swellColor(t) {
   if (t <= 0) return REST;
   const x = Math.min(1, t) * (RAMP.length - 1);
@@ -45,10 +54,28 @@ function drawGlyph(ctx, glyph, color, face) {
       ctx.translate(50, 50); ctx.rotate(glyph.rotate * Math.PI / 180); ctx.translate(-50, -50);
     }
     const w = ctx.measureText(glyph.text).width;
-    const size = Math.min(72, 60 * 76 / w);
+    const maxW = glyph.rotate ? 116 : 76;
+    const size = glyph.fontSize || Math.min(72, 60 * maxW / w);
     ctx.font = `700 ${size}px Inter, system-ui, sans-serif`;
     ctx.fillText(glyph.text, 50, 54);
   }
+}
+
+// Pre-render filler letters onto offscreen canvases once
+const letterCanvases = {};
+for (const ch of new Set(NAME_TEXT)) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 100;
+  const x = c.getContext("2d");
+  x.font = "700 60px Inter, system-ui, sans-serif";
+  x.textAlign = "center";
+  x.textBaseline = "middle";
+  const w = x.measureText(ch).width;
+  const size = Math.min(72, 60 * 76 / w);
+  x.font = `700 ${size}px Inter, system-ui, sans-serif`;
+  x.fillStyle = LETTER_GREY;
+  x.fillText(ch, 50, 54);
+  letterCanvases[ch] = c;
 }
 
 // Image icons are white silhouettes; tint a cached copy per ink level.
@@ -76,12 +103,24 @@ const nav = document.getElementById("links");
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 let W, H, CY, dpr, TW, TH, N, half, h, v, specials, fillers, keyCells, hover = null, focusedKey = null, holeCI, holeCJ, holeCells, holeDelay, activeProject = null, holeT = 0, holeH0, returnFocus = null, DEPTH, MAXH, mobile;
+let hTW, hTH, y0Offset, y2Offset, tA, tB, tC, tD;
 const GAP = 0.58;
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
 function rand(n) { return Math.floor(Math.random() * n); }
 const cell = (i, j) => i * N + j;
 const proj = (i, j, z = 0) => [W / 2 + (i - j) * TW / 2, CY + (i + j - 2 * half) * TH / 2 - z];
+
+function updateGeometryConstants() {
+  hTW = GAP * TW / 2;
+  hTH = TH / 2;
+  y0Offset = (1 - GAP) * hTH;
+  y2Offset = (1 + GAP) * hTH;
+  tA = dpr * hTW / 100;
+  tB = dpr * GAP * hTH / 100;
+  tC = -tA;
+  tD = tB;
+}
 
 function setup() {
   dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -90,8 +129,9 @@ function setup() {
   mobile = W <= MOBILE_MAX_WIDTH;
   // On desktop, size the keys so about DESKTOP_ROWS horizontal rows fill the screen height
   // (rows are TH / 2 = 0.28 * TW apart), which also keeps the field filling the width.
-  TW = mobile ? W / 3.8 : Math.max(56, H / (DESKTOP_ROWS * 0.28)); TH = TW * 0.56;
+  TW = mobile ? W / (typeof MOBILE_KEY_DIVISOR !== "undefined" ? MOBILE_KEY_DIVISOR : 3.45) : Math.max(56, H / (DESKTOP_ROWS * 0.28)); TH = TW * 0.56;
   DEPTH = TW * 0.33; MAXH = TW * 0.45;
+  updateGeometryConstants();
   N = Math.ceil(W / TW + H / TH) + 6; half = (N - 1) / 2;
   h = new Float32Array(N * N); v = new Float32Array(N * N);
 
@@ -119,6 +159,8 @@ function setup() {
     if (d <= HOLE_RADIUS) { holeCells.add(cell(i, j)); holeDelay.set(cell(i, j), d / HOLE_RADIUS * 0.5); }
   }
   layoutPanel();
+  render();
+  wake();
 }
 
 // ===== project panel in the middle of the hole =====
@@ -149,14 +191,20 @@ function openProject(k, from) {
   }));
   nav.inert = true; focusedKey = null; hover = null; canvas.style.cursor = "default";
   if (reduceMotion.matches) holeT = 2;
+  wake();
 }
 function closeProject() {
   if (!activeProject) return;
   activeProject = null;
+  focusedKey = null;
   panel.classList.remove("open");
   nav.inert = false;
   if (reduceMotion.matches) holeT = 0;
-  if (returnFocus) returnFocus.focus({ preventScroll: true });
+  if (returnFocus) {
+    returnFocus.focus({ preventScroll: true });
+    returnFocus = null;
+  }
+  wake();
 }
 document.getElementById("project-back").addEventListener("click", closeProject);
 addEventListener("keydown", e => { if (e.key === "Escape") closeProject(); });
@@ -174,7 +222,12 @@ function step() {
     const nb = ((i > 0 ? h[id - N] : 0) + (i < N - 1 ? h[id + N] : 0) + (j > 0 ? h[id - 1] : 0) + (j < N - 1 ? h[id + 1] : 0)) / 4;
     v[id] = (v[id] + (nb - h[id]) * c - h[id] * k) * damp;
   }
-  for (let n = 0; n < h.length; n++) h[n] += v[n] * SPEED;
+  let maxEnergy = 0;
+  for (let n = 0; n < h.length; n++) {
+    h[n] += v[n] * SPEED;
+    const e = Math.abs(h[n]) + Math.abs(v[n]);
+    if (e > maxEnergy) maxEnergy = e;
+  }
   for (const id of holeCells) if (holeT > 0) h[id] = v[id] = 0;
   holeT = Math.max(0, Math.min(HOLE_REVEAL, holeT + (activeProject ? 1 : -1) / 60 * 1.2));
   // reveal the text only once every block has dropped, plus a short buffer
@@ -182,6 +235,7 @@ function step() {
     panel.classList.add("open");
     document.getElementById("project-title").focus({ preventScroll: true });
   }
+  return maxEnergy;
 }
 
 function poke(px, py, strength) {
@@ -194,6 +248,7 @@ function poke(px, py, strength) {
     const d2 = (i + .5 - ci) ** 2 + (j + .5 - cj) ** 2;
     v[cell(i, j)] += strength * Math.exp(-d2 / (R * R));
   }
+  wake();
 }
 
 function hitSpecial(px, py) {
@@ -225,6 +280,9 @@ for (const k of KEYS) {
   a.appendChild(labelSpan);
   a.appendChild(sr);
   a.addEventListener("focus", () => {
+    try {
+      if ("matches" in a && !a.matches(":focus-visible")) return;
+    } catch (e) {}
     focusedKey = k;
     const id = keyCells.get(k), p = facePoints(Math.floor(id / N), id % N, 0);
     poke((p[0][0] + p[2][0]) / 2, (p[0][1] + p[2][1]) / 2, CLICK_STRENGTH * 1.1);
@@ -253,12 +311,13 @@ addEventListener("pointermove", e => {
   last = [e.clientX, e.clientY];
   hover = hitSpecial(e.clientX, e.clientY);
   canvas.style.cursor = hover ? "pointer" : "default";
+  wake();
 });
 addEventListener("pointerleave", () => { last = null; });
 canvas.addEventListener("pointerdown", e => {
   poke(e.clientX, e.clientY, CLICK_STRENGTH);
   const k = hitSpecial(e.clientX, e.clientY);
-  if (k && k.project) openProject(k, document.querySelector(`#links a[href="${k.href}"]`));
+  if (k && k.project) openProject(k);
   else if (k) window.open(k.href, "_blank", "noopener");
 });
 
@@ -266,41 +325,85 @@ canvas.addEventListener("pointerdown", e => {
 function drawBlock(i, j) {
   const id = cell(i, j), drop = holeT > 0 && holeCells.has(id) ? holeProgress(id) : 0;
   if (drop >= 1) return;
-  // blocks in the hole start falling from the height they had when clicked
+
   const base = holeT > 0 && holeCells.has(id) ? (activeProject ? holeH0[id] : 0) : h[id];
+  const isRest = Math.abs(base) < 0.001;
   const z = base - drop * drop * (DEPTH * 2 + MAXH + Math.max(0, base));
-  ctx.save(); ctx.globalAlpha = 1 - drop * drop;
-  const t = Math.max(0, base) / MAXH;
-  const col = swellColor(t * 1.15);
-  const top = facePoints(i, j, z);
-  const bot = facePoints(i, j, -DEPTH);
-  ctx.lineJoin = "round"; ctx.lineWidth = TW * 0.05;
-  const poly = (pts, fill) => {
-    ctx.beginPath(); pts.forEach((p, n) => n ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath();
-    ctx.fillStyle = ctx.strokeStyle = fill; ctx.fill(); ctx.stroke();
-  };
-  poly([top[3], top[2], bot[2], bot[3]], css(col, 0.55)); // left face
-  poly([top[2], top[1], bot[1], bot[2]], css(col, 0.38)); // right face
-  const glow = Math.min(1, t * 1.4);
-  poly(top, css(mix(col, [255, 255, 255], glow * 0.08), 1 + glow * 0.1));
+
+  const cx = W / 2 + (i - j) * (TW / 2);
+  const cy = CY + (i + j - 2 * half) * hTH - z;
+  const dz = z + DEPTH;
+
+  const p0x = cx, p0y = cy + y0Offset;
+  const p1x = cx + hTW, p1y = cy + hTH;
+  const p2x = cx, p2y = cy + y2Offset;
+  const p3x = cx - hTW, p3y = cy + hTH;
+
+  const bot1y = p1y + dz;
+  const bot2y = p2y + dz;
+  const bot3y = p3y + dz;
+
+  if (drop > 0) {
+    ctx.save();
+    ctx.globalAlpha = 1 - drop * drop;
+  }
+
+  let cLeft, cRight, cTop, col, glow;
+  if (isRest) {
+    cLeft = REST_LEFT;
+    cRight = REST_RIGHT;
+    cTop = REST_TOP;
+  } else {
+    const t = Math.max(0, base) / MAXH;
+    col = swellColor(t * 1.15);
+    cLeft = cssRgb(col, 0.55);
+    cRight = cssRgb(col, 0.38);
+    glow = Math.min(1, t * 1.4);
+    cTop = cssRgb(mix(col, [255, 255, 255], glow * 0.08), 1 + glow * 0.1);
+  }
+
+  // Left face
+  ctx.beginPath();
+  ctx.moveTo(p3x, p3y); ctx.lineTo(p2x, p2y); ctx.lineTo(p2x, bot2y); ctx.lineTo(p3x, bot3y); ctx.closePath();
+  ctx.fillStyle = ctx.strokeStyle = cLeft; ctx.fill(); ctx.stroke();
+
+  // Right face
+  ctx.beginPath();
+  ctx.moveTo(p2x, p2y); ctx.lineTo(p1x, p1y); ctx.lineTo(p1x, bot1y); ctx.lineTo(p2x, bot2y); ctx.closePath();
+  ctx.fillStyle = ctx.strokeStyle = cRight; ctx.fill(); ctx.stroke();
+
+  // Top face
+  ctx.beginPath();
+  ctx.moveTo(p0x, p0y); ctx.lineTo(p1x, p1y); ctx.lineTo(p2x, p2y); ctx.lineTo(p3x, p3y); ctx.closePath();
+  ctx.fillStyle = ctx.strokeStyle = cTop; ctx.fill(); ctx.stroke();
 
   const key = specials.get(id);
   const S = 100;
-  const ux = (top[1][0] - top[0][0]) / S, uy = (top[1][1] - top[0][1]) / S;
-  const vx = (top[3][0] - top[0][0]) / S, vy = (top[3][1] - top[0][1]) / S;
-  ctx.save();
-  ctx.transform(ux, uy, vx, vy, top[0][0], top[0][1]);
-  const faceCol = mix(col, [255, 255, 255], glow * 0.08);
-  if (key) {
-    const x = Math.max(0, 1 - t * 1.6), level = Math.round(x * TINT_LEVELS);
-    const ink = css(mix(RAMP[0], RAMP[RAMP.length - 1], level / TINT_LEVELS));
-    const glyph = key.icon && key.icon.includes("/") ? { img: tinted(key.icon, level, ink) } : key;
-    if (glyph.img !== null) drawGlyph(ctx, glyph, ink, css(faceCol, 1 + glow * 0.1));
+  if (!key) {
+    ctx.setTransform(tA, tB, tC, tD, dpr * p0x, dpr * p0y);
+    ctx.drawImage(letterCanvases[NAME_TEXT[fillers[id]]], 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   } else {
-    drawGlyph(ctx, { text: NAME_TEXT[fillers[id]] }, LETTER_GREY);
+    ctx.save();
+    const ux = (p1x - p0x) / S, uy = (p1y - p0y) / S;
+    const vx = (p3x - p0x) / S, vy = (p3y - p0y) / S;
+    ctx.transform(ux, uy, vx, vy, p0x, p0y);
+    if (isRest) {
+      col = REST;
+      glow = 0;
+    }
+    const t = Math.max(0, base) / MAXH;
+    const faceCol = mix(col, [255, 255, 255], glow * 0.08);
+    const x = Math.max(0, 1 - t * 1.6), level = Math.round(x * TINT_LEVELS);
+    const ink = cssRgb(mix(RAMP[0], RAMP[RAMP.length - 1], level / TINT_LEVELS));
+    const glyph = key.icon && key.icon.includes("/") ? { img: tinted(key.icon, level, ink) } : key;
+    if (glyph.img !== null) drawGlyph(ctx, glyph, ink, cssRgb(faceCol, 1 + glow * 0.1));
+    ctx.restore();
   }
-  ctx.restore();
-  ctx.restore();
+
+  if (drop > 0) {
+    ctx.restore();
+  }
 }
 
 function drawFocusRing(k) {
@@ -328,22 +431,12 @@ function drawFocusRing(k) {
   ctx.restore();
 }
 
-let time = 0;
-function frame() {
-  time += 1 / 60;
-  // gentle idle ripple so the field is alive before any interaction
-  if (Math.floor(time * 60) % Math.round(210 / SPEED) === 0) poke(W * (0.2 + 0.6 * Math.random()), H * (0.15 + 0.5 * Math.random()), 2.5);
-  // continuous gentle swell reaction while focused via keyboard (matches mouse hover effect)
-  if (focusedKey) {
-    const fId = keyCells.get(focusedKey);
-    if (fId !== undefined) {
-      const p = facePoints(Math.floor(fId / N), fId % N, 0);
-      poke((p[0][0] + p[2][0]) / 2, (p[0][1] + p[2][1]) / 2, 0.35);
-    }
-  }
-  step();
+function render() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = BACKGROUND; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = BACKGROUND;
+  ctx.fillRect(0, 0, W, H);
+  ctx.lineJoin = "round";
+  ctx.lineWidth = TW * 0.05;
   for (let s = 0; s <= 2 * (N - 1); s++) {
     for (let i = Math.max(0, s - N + 1); i <= Math.min(N - 1, s); i++) {
       const j = s - i, [x, y] = proj(i, j);
@@ -354,9 +447,72 @@ function frame() {
   if (focusedKey) {
     drawFocusRing(focusedKey);
   }
-  requestAnimationFrame(frame);
 }
 
-addEventListener("resize", setup);
+let animating = false;
+let idleTimer = null;
+
+function resetIdleTimer() {
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimer = null;
+  }
+}
+
+function scheduleIdleRipple() {
+  if (idleTimer || reduceMotion.matches) return;
+  idleTimer = setTimeout(() => {
+    idleTimer = null;
+    poke(W * (0.2 + 0.6 * Math.random()), H * (0.15 + 0.5 * Math.random()), 2.5);
+  }, 5000);
+}
+
+function wake() {
+  resetIdleTimer();
+  if (!animating) {
+    animating = true;
+    requestAnimationFrame(frame);
+  }
+}
+
+function frame() {
+  // continuous gentle swell reaction while focused via keyboard (matches mouse hover effect)
+  if (focusedKey) {
+    const fId = keyCells.get(focusedKey);
+    if (fId !== undefined) {
+      const p = facePoints(Math.floor(fId / N), fId % N, 0);
+      poke((p[0][0] + p[2][0]) / 2, (p[0][1] + p[2][1]) / 2, 0.35);
+    }
+  }
+
+  const maxEnergy = step();
+  render();
+
+  const isTransitioning = (activeProject !== null && holeT < HOLE_REVEAL) || (activeProject === null && holeT > 0);
+  const isMoving = maxEnergy > 0.05;
+
+  if (isMoving || isTransitioning || focusedKey !== null) {
+    requestAnimationFrame(frame);
+  } else {
+    h.fill(0);
+    v.fill(0);
+    render();
+    animating = false;
+    scheduleIdleRipple();
+  }
+}
+
+addEventListener("resize", () => {
+  setup();
+  wake();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    wake();
+  } else {
+    resetIdleTimer();
+  }
+});
+
 setup();
-requestAnimationFrame(frame);
