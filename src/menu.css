@@ -1,0 +1,114 @@
+#menu {
+  --paper: #f6ecd2; --paper-2: #eadcb8; --ink: #2b1d12; --blue: #6d0503; --lift: 0;
+  position: fixed; z-index: 5; left: 22vw; inset-block: auto 0; margin-block: 0;
+  width: clamp(420px, 30vw, 720px); height: min(88vh, 780px);
+  perspective: 1800px; font-family: 'IM Fell English', Georgia, 'Times New Roman', serif; color: var(--ink);
+  opacity: 0; translate: -48px 0; pointer-events: none;
+  transition: opacity .9s ease, translate .9s cubic-bezier(.2,.7,.2,1);
+}
+#menu[hidden] { display: none; }
+#menu.shown { opacity: 1; translate: 0 0; pointer-events: auto; }
+
+/* held at an angle, like someone is offering it to you; it eases toward flat on hover */
+#menu .tilt { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 0 50%; transform: rotateY(16deg) rotateZ(-3.5deg); transition: transform .5s ease; }
+#menu .tilt:hover, #menu .tilt:focus-within { transform: rotateY(7deg) rotateZ(-1.5deg); }
+#menu .book { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 1s cubic-bezier(.45,.05,.25,1); }
+#menu .leaf { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 0 50%; transition: transform 1s cubic-bezier(.45,.05,.25,1); }
+/* the sheet hinges on its left edge; the book slides over by one page width so the back lands where the front was */
+#menu .book.flipped { transform: translateX(100%); }
+#menu .book.flipped .leaf { transform: rotateY(-180deg); }
+
+#menu .face {
+  position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden;
+  /* faces swap while the sheet is edge-on; backface-visibility broke hit-testing on the flipped page */
+  transition: visibility 0s .5s;
+  padding: 22px 24px 18px 34px; border-radius: 3px 10px 10px 3px;
+  background:
+    linear-gradient(90deg, rgba(60,35,10,.28), rgba(60,35,10,0) 22px),
+    radial-gradient(ellipse at 30% 10%, #fbf3dc, var(--paper) 55%, var(--paper-2));
+  box-shadow: 0 18px 40px rgba(0,0,0,.55), inset 0 0 0 1px rgba(120,80,30,.25), inset 0 0 40px rgba(120,80,30,.18);
+}
+#menu .face::after {   /* printed double rule inside the page edge */
+  content: ''; position: absolute; inset: 9px 9px 9px 20px; border: 3px double rgba(1,27,94,.35); border-radius: 2px; pointer-events: none;
+}
+#menu .back { transform: rotateY(180deg); padding-left: 24px; padding-right: 34px; background:
+    linear-gradient(-90deg, rgba(60,35,10,.28), rgba(60,35,10,0) 22px),
+    radial-gradient(ellipse at 70% 10%, #fbf3dc, var(--paper) 55%, var(--paper-2)); }
+#menu .back::after { inset: 9px 20px 9px 9px; }
+#menu .back { visibility: hidden; }
+#menu .book.flipped .front { visibility: hidden; }
+#menu .book.flipped .back { visibility: visible; }
+#menu .face[inert] { pointer-events: none; }
+
+#menu .menu-head { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; padding: 4px 0 12px; border-bottom: 1px solid rgba(1,27,94,.3); margin-bottom: 8px; }
+#menu .menu-logo { height: 58px; width: auto; display: block; }
+#menu .menu-name { font-size: 1.45rem; line-height: 1.05; font-style: italic; color: var(--blue); white-space: nowrap; }
+#menu .handle { display: none; }
+
+#menu .scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 4px 6px 4px 2px; scrollbar-width: thin; scrollbar-color: rgba(1,27,94,.4) transparent; }
+#menu h2 { font-weight: 400; font-size: 1.05rem; letter-spacing: .22em; text-transform: uppercase; text-align: center; color: var(--blue); margin: 14px 0 6px; }
+#menu h2::before, #menu h2::after { content: '✦'; margin: 0 .6em; font-size: .7em; vertical-align: .15em; opacity: .6; }
+#menu ul { list-style: none; padding: 0; }
+
+#menu .dish { display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; column-gap: 6px; width: 100%; padding: 7px 4px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 4px; }
+#menu .dish-static { grid-template-columns: auto 1fr; cursor: default; }
+#menu .dish-name { font-size: 1.25rem; }
+#menu .leader { border-bottom: 2px dotted rgba(43,29,18,.55); transform: translateY(-4px); min-width: 12px; }
+#menu .dish-go { font-size: 1.1rem; color: var(--blue); transition: transform .2s; }
+#menu .dish-desc { grid-column: 1 / -1; font-style: italic; font-size: .88rem; opacity: .75; }
+#menu .dish:not(.dish-static):hover, #menu .dish:not(.dish-static):focus-visible { background: rgba(1,27,94,.08); outline: none; }
+#menu .dish:focus-visible { box-shadow: 0 0 0 2px var(--blue); }
+#menu .dish:hover .dish-go, #menu .dish:focus-visible .dish-go { transform: translateX(4px); }
+
+#menu .specials { margin-top: 18px; padding: 2px 14px 10px; border: 2px dashed rgba(1,27,94,.45); border-radius: 6px; background: rgba(255,255,255,.28); }
+#menu .special { padding: 5px 0; }
+#menu .education { margin-top: 18px; }
+#menu .edu { padding: 4px 0; }
+#menu .edu .dish-name { display: block; font-size: 1.1rem; }
+#menu .edu .dish-desc { display: block; font-style: italic; font-size: .9rem; opacity: .65; }
+#menu .special .dish-name { display: block; font-size: 1.1rem; }
+#menu .special-note { display: block; font-style: italic; font-size: .9rem; line-height: 1.3; opacity: .65; }
+
+#menu .menu-links { position: relative; z-index: 1; display: flex; flex: 0 0 100%; margin-top: 0; padding: 0 0 2px; }
+#menu .menu-link { flex: 1; min-width: 0; text-align: center; }
+#menu a { color: var(--blue); text-underline-offset: 3px; }
+#menu .menu-links a { color: var(--ink); font-style: italic; font-size: 1.1rem; }
+#menu a:focus-visible, #menu .back-btn:focus-visible, #menu .handle:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+#menu .back-btn { align-self: flex-start; margin: 2px 0 8px; padding: 6px 4px; border: 0; background: none; color: var(--blue); font: italic 1.1rem 'IM Fell English', Georgia, serif; cursor: pointer; }
+#menu .back-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+#menu .detail h2 { text-align: left; text-transform: none; letter-spacing: 0; font-size: 1.55rem; line-height: 1.15; margin: 4px 0 14px; font-style: italic; }
+#menu .detail h2::before, #menu .detail h2::after { content: none; }
+#menu .detail p { font-size: 1.02rem; line-height: 1.5; margin-bottom: .8em; }
+#menu .detail p:first-of-type::first-letter { font-size: 2.6em; float: left; line-height: .85; padding: 4px 6px 0 0; color: var(--blue); }
+#menu .detail-links { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 14px; }
+#menu .detail-links a { font-style: italic; font-size: 1.05rem; }
+#menu .fleuron {
+  width: 1.6rem; height: 1.6rem; margin: 18px auto 4px;
+  background-color: var(--blue); opacity: .6;
+  -webkit-mask: url('../assets/favicon.png') center / contain no-repeat;
+  mask: url('../assets/favicon.png') center / contain no-repeat;
+}
+
+/* ---------- mobile: just the top edge shows until pulled up ---------- */
+@media (orientation: portrait) {
+  #menu, #menu.shown {
+    left: 50%; inset-block: auto 0; margin-block: 0; width: min(94vw, 460px); height: min(78vh, 640px); height: min(78dvh, 640px);
+    translate: -50% calc((1 - var(--lift)) * (100% - var(--peek, 88px)));
+    transition: opacity .9s ease, translate .45s cubic-bezier(.2,.7,.2,1);
+  }
+  #menu:not(.shown) { translate: -50% 100%; }
+  #menu.dragging { transition: none; }
+  #menu .tilt, #menu .tilt:hover, #menu .tilt:focus-within { transform: rotateZ(-1.5deg); transform-origin: 50% 100%; }
+  #menu .face { padding-top: 12px; }
+  #sound { top: 16px; bottom: auto; }
+  #menu .menu-head { cursor: grab; }
+  #menu .handle { display: block; position: absolute; inset: 0; border: 0; background: none; cursor: pointer; }
+  #menu .menu-head::after { content: '▲'; position: absolute; right: 2px; top: 6px; font-size: .7rem; color: var(--blue); opacity: .6; transition: transform .3s; }
+  #menu:not(.collapsed) .menu-head::after { transform: rotate(180deg); }
+  #menu.collapsed .scroll { overflow: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #menu, #menu .tilt, #menu .book, #menu .leaf { transition-duration: .01s; }
+}

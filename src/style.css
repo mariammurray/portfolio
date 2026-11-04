@@ -1,0 +1,86 @@
+:root { --blue: #011b5e; --cream: #f6ecd2; }
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; overflow: hidden; background: var(--blue); }
+
+#stage { position: fixed; inset: 0; overflow: hidden; }
+#scene { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; transform-origin: 0 0; opacity: 0; }
+#scene > img, #scene > canvas, .pic, #near, #near > img, #near > canvas, #hollywrap, .light { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
+/* the baked-in blue frame of background.webp is cropped away: only the picture shows */
+.pic { clip-path: inset(0 103px 101px 119px); }
+.pic img, .pic canvas { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
+#indoor, #holly, #wine { opacity: 0; }
+#hollywrap { transform-origin: 600px 0; pointer-events: none; }
+#holly { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
+/* Photoshop-style Soft Light, confined to the indoor art by using its alpha as a mask */
+/* soft-light is the Photoshop look; the faint screen layer lifts the deep shadows so the warmth reads on a dark room */
+.light {
+  -webkit-mask: url('../assets/indoor-no-light.webp') 0 0 / 1200px 675px;
+  mask: url('../assets/indoor-no-light.webp') 0 0 / 1200px 675px;
+  mix-blend-mode: soft-light; opacity: 0; pointer-events: none;
+}
+.light.lift { mix-blend-mode: screen; }
+.light.hl { -webkit-mask-image: url('../assets/holly.webp'); mask-image: url('../assets/holly.webp'); }
+/* the glow itself scales from the candles' corner; the mask above stays fixed to the room */
+.light i {
+  position: absolute; inset: 0; transform-origin: 100% 100%;
+  background: url('../assets/light.webp') 0 0 / 100% 100%;
+  /* feathered top and left edges: they pull in from the corner when the glow shrinks, so they must fade out */
+  -webkit-mask: linear-gradient(to bottom, transparent, #000 30%), linear-gradient(to right, transparent, #000 30%);
+  -webkit-mask-composite: source-in;
+  mask: linear-gradient(to bottom, transparent, #000 30%), linear-gradient(to right, transparent, #000 30%);
+  mask-composite: intersect;
+}
+#hollywrap .twinkle { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; mix-blend-mode: screen; filter: drop-shadow(0 0 3px rgba(255,200,110,.9)); pointer-events: none; }
+#flames { pointer-events: none; opacity: 0; }
+.steam { opacity: 0; transform-origin: 815px 440px; animation: steam 7s ease-in-out infinite paused; pointer-events: none; visibility: hidden; }
+.steam.s2 { animation-delay: 3.5s;   /* positive, so the second plume also fades in from nothing */
+   animation-duration: 8.5s; }
+#stage.steaming .steam { visibility: visible; animation-play-state: running; }
+@keyframes steam {
+  0%   { opacity: 0;   transform: translate(0, 18px) scale(.85); }
+  30%  { opacity: .9; }
+  70%  { opacity: .55; transform: translate(10px, -22px) scale(1.12); }
+  100% { opacity: 0;   transform: translate(-6px, -48px) scale(1.3); }
+}
+
+#loader {
+  position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; text-align: center;
+  pointer-events: none;
+}
+#loader .wash {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, #fff 38%, #e9edf8 62%, var(--blue) 100%);
+}
+#loader-snow { position: absolute; inset: 0; width: 100%; height: 100%; }
+#loader .copy { position: relative; padding: 0 6vw; color: var(--blue); font-family: 'IM Fell English', Georgia, 'Times New Roman', serif; transform: translateY(8vh); }
+#loader .sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+#loader .copy img { display: block; width: min(70vw, 36vh, 420px); height: auto; margin: 0 auto; }
+#enter-pub {
+  display: flex; align-items: center; justify-content: center; gap: .55rem; margin: .8rem auto 0; padding: .5rem .85rem;
+  border: 0; background: transparent; color: inherit; font: italic clamp(1.5rem, 3.4vw, 2.5rem) 'IM Fell English', Georgia, 'Times New Roman', serif;
+  cursor: pointer; pointer-events: auto;
+  text-shadow: 0 0 6px #091022, 0 0 12px #091022, 0 0 20px #091022, 0 0 32px #091022;
+}
+#enter-pub:disabled { cursor: wait; }
+#enter-pub .arrow[hidden] { display: none; }
+#enter-pub:not(:disabled):hover .arrow { transform: translateY(4px); }
+#enter-pub:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+#enter-pub .arrow { display: inline-block; font-size: 1.3em; transition: transform .2s ease; }
+
+@media (prefers-reduced-motion: reduce) { .steam { animation: none; opacity: .5; } }
+
+#sound {
+  position: fixed; right: 16px; bottom: 16px; z-index: 11; width: 44px; height: 44px; padding: 10px;
+  border: 1px solid rgba(246,236,210,.5); border-radius: 50%; background: rgba(1,27,94,.6); color: var(--cream);
+  cursor: pointer; backdrop-filter: blur(4px);
+}
+#sound[hidden] { display: none; }
+#sound:hover { background: rgba(1,27,94,.85); }
+#sound:focus-visible { outline: 3px solid var(--cream); outline-offset: 3px; }
+#sound svg { width: 100%; height: 100%; display: block; fill: currentColor; }
+#sound .slash { display: none; }
+#sound[data-muted="true"] .slash { display: inline; }
+#sound[data-muted="true"] .wave { display: none; }

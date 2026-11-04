@@ -1,0 +1,237 @@
+import gsap from 'gsap'
+import './style.css'
+import { createSnow } from './snow'
+import { createFlames } from './flames'
+import bgUrl from '../assets/background.webp'
+import indoorUrl from '../assets/indoor-no-light.webp'
+import hollyUrl from '../assets/holly.webp'
+import wineUrl from '../assets/wine.webp'
+import steamUrl from '../assets/steam.webp'
+import maskUrl from '../assets/candles mask.webp'
+import lightMaskUrl from '../assets/light mask.webp'
+import soundOgg from '../assets/369545__zacki_17__pub_open-air-ogg.ogg'
+import soundMp3 from '../assets/369545__zacki_17__pub_open-air-mp3.mp3'
+import ringOgg from '../assets/ring-ogg.ogg'
+import ringMp3 from '../assets/ring-mp3.mp3'
+import { createTwinkle } from './twinkle'
+import { createAmbience } from './ambience'
+import { createMenu } from './menu'
+
+const KNOBS = {
+  minLoader: 1.6,      // minimum time the opening screen stays before entry is enabled
+  picFade: 1.6,
+  zoomOut: 3.2,
+  fgFade: 1.4,
+}
+// picture area inside background.webp (the rest is the blue frame)
+const PIC = { x: 119 + 50, y: 25, w: 978 - 100, h: 574 - 50 }   // inset so the slanted edges stay off-screen
+const LIGHT = { min: 0.85, max: 1 }   // glow scale range, anchored at the bottom-right corner
+const MUG_X = 815   // scene x of the mug
+const SCENE = { w: 1200, h: 675 }
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!
+const scene = $('#scene'), loader = $('#loader'), wash = $('#loader .wash'), copy = $('#loader .copy')
+const bg = $<HTMLImageElement>('#bg'), indoor = $<HTMLImageElement>('#indoor'), holly = $<HTMLImageElement>('#holly'), wine = $<HTMLImageElement>('#wine')
+const lights = Array.from(document.querySelectorAll<HTMLElement>('.light'))
+const GLOW = 0.4   // strength of each soft-light layer (static + flickering); they add up where they overlap
+const LIFT = 0.25   // strength of the screen layer relative to the soft-light layer
+const reveal = { v: reduce ? 1 : 0 }   // fades the light in together with the indoor layeri
+const steams = document.querySelectorAll<HTMLImageElement>('.steam')
+const hollyWrap = $('#hollywrap')
+const flamesEl = $<HTMLCanvasElement>('#flames')
+const ambience = createAmbience([{ url: soundOgg, type: 'audio/ogg; codecs=vorbis' }, { url: soundMp3, type: 'audio/mpeg' }], $<HTMLButtonElement>('#sound'))
+const ringAudio = new Audio()
+ringAudio.preload = 'auto'
+const ringSource = [{ url: ringOgg, type: 'audio/ogg; codecs=vorbis' }, { url: ringMp3, type: 'audio/mpeg' }]
+ringAudio.src = ringSource.find((source) => ringAudio.canPlayType(source.type))?.url ?? ringMp3
+ringAudio.load()
+
+const load = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+  const img = new Image()
+  img.onload = () => resolve(img)
+  img.onerror = reject
+  img.src = src
+})
+const wait = (s: number) => new Promise<void>((resolve) => setTimeout(resolve, s * 1000))
+
+// camera: scene pixels -> viewport. zoomed in = picture fills the screen, zoomed out = whole scene covers it
+function camera(zoomedIn: boolean) {
+  const vw = innerWidth, vh = innerHeight
+  const portrait = vw < vh
+  const out = Math.max(vw / SCENE.w, vh / SCENE.h) * 1.04   // slight overscan so parallax never exposes the edges
+  const scale = zoomedIn ? Math.max(vw / PIC.w, vh / PIC.h) : out
+  const box = zoomedIn ? PIC : { x: 0, y: 0, w: SCENE.w, h: SCENE.h }
+  const cy = (vh - SCENE.h * scale) / 2
+  let x = vw / 2 - (box.x + box.w / 2) * scale
+  // on portrait screens the mug sits just right of centre, kept within the visible art
+  if (portrait) x = Math.min(-box.x * scale, Math.max(vw - (box.x + box.w) * scale, vw * 0.56 - MUG_X * scale))
+  const y = zoomedIn ? vh / 2 - (box.y + box.h / 2) * scale : cy
+  return { scale, x, y }
+}
+let zoomedIn = true
+addEventListener('resize', () => gsap.set(scene, camera(zoomedIn)))
+
+const loaderSnow = createSnow($<HTMLCanvasElement>('#loader-snow'), { count: 350, rim: 'rgba(110,140,230,.4)' })
+const enterButton = $<HTMLButtonElement>('#enter-pub')
+const enterLabel = $('#entry-label')
+const enterArrow = $<HTMLSpanElement>('#entry-arrow')
+
+function waitForEntry() {
+  return new Promise<void>((resolve) => {
+    const cleanup = () => {
+      enterButton.removeEventListener('click', enter)
+      removeEventListener('wheel', onWheel)
+      removeEventListener('keydown', onKeydown)
+      removeEventListener('pointerdown', onPointerDown)
+      removeEventListener('pointerup', onPointerUp)
+      removeEventListener('pointercancel', onPointerCancel)
+    }
+    const enter = () => {
+      if (enterButton.disabled) return
+      enterButton.disabled = true
+      cleanup()
+      ringAudio.currentTime = 0
+      void ringAudio.play().catch((error: unknown) => console.error('Unable to play pub entry sound', error))
+      resolve()
+    }
+    const onWheel = (event: WheelEvent) => { if (event.deltaY > 0) enter() }
+    const onKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowDown' || event.key === 'PageDown') {
+        event.preventDefault()
+        enter()
+      }
+    }
+    let touchStartY: number | null = null
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') touchStartY = event.clientY
+    }
+    const onPointerUp = (event: PointerEvent) => {
+      if (touchStartY !== null && touchStartY - event.clientY > 40) enter()
+      touchStartY = null
+    }
+    const onPointerCancel = () => { touchStartY = null }
+
+    enterButton.addEventListener('click', enter)
+    addEventListener('wheel', onWheel, { passive: true })
+    addEventListener('keydown', onKeydown)
+    addEventListener('pointerdown', onPointerDown)
+    addEventListener('pointerup', onPointerUp)
+    addEventListener('pointercancel', onPointerCancel)
+  })
+}
+
+async function run() {
+  const started = performance.now()
+  const [bgImg, fgImages] = await Promise.all([
+    load(bgUrl),
+    Promise.all([load(indoorUrl), load(steamUrl), load(maskUrl), load(hollyUrl), load(lightMaskUrl), load(wineUrl)]),
+  ])
+  const [fgImg, steamImg, maskImg, hollyImg, lightMaskImg, wineImg] = fgImages
+  bg.src = bgImg.src
+  indoor.src = fgImg.src
+  holly.src = hollyImg.src
+  holly.hidden = false
+  wine.src = wineImg.src
+  steams.forEach((s) => { s.src = steamImg.src; s.hidden = false })
+
+  // Prepare the close-up pub view while the sign remains over the loading screen.
+  createSnow($<HTMLCanvasElement>('#scene-snow'), { width: SCENE.w, height: SCENE.h, count: 700, rim: 'rgba(200,215,255,.25)', scale: 0.8 })
+  gsap.set(scene, camera(true))
+
+  await wait(Math.max(0, KNOBS.minLoader - (performance.now() - started) / 1000))
+  // Stage 1 -> show the picture and its snow, leaving the sign as the entry prompt.
+  await new Promise<void>((resolve) => {
+    gsap.timeline({ onComplete: resolve })
+      .to(scene, { opacity: 1, duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' })
+      .to([wash, '#loader-snow'], { opacity: 0, duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' }, 0)
+      .to(copy, { color: '#f6ecd2', duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' }, 0)
+  })
+  loaderSnow.stop()
+
+  // Finish the foreground effects before announcing that the pub is open.
+  const flameAnimation = createFlames(flamesEl, fgImg, maskImg, (n) => {
+    const k = Math.max(0, Math.min(1, (n * 2.2 + 1) / 2))   // 0..1 flicker level
+    const scale = LIGHT.min + (LIGHT.max - LIGHT.min) * k
+    for (const l of lights) {
+      if (l.classList.contains('fixed')) { l.style.opacity = String(reveal.v * GLOW); continue }
+      const lift = l.classList.contains('lift')
+      const strength = lift ? LIFT * (0.4 + 0.6 * k) : GLOW * (0.6 + 0.4 * k)
+      l.style.opacity = String(reveal.v * strength)
+      ;(l.firstElementChild as HTMLElement).style.transform = `scale(${scale})`
+    }
+  })
+  const twinkle = createTwinkle(hollyWrap, lightMaskImg, reduce)
+
+  enterLabel.textContent = 'Open for business'
+  enterButton.setAttribute('aria-label', 'Enter the pub')
+  enterArrow.hidden = false
+  enterButton.disabled = false
+  ambience.show()
+  void ambience.play()
+  await waitForEntry()
+
+  // Stage 2 -> dismiss the sign while revealing the foreground.
+  flameAnimation.start()
+  zoomedIn = false
+  const d = reduce ? 0 : 1
+  // fades and zoom-out run together as one continuous movement
+  await new Promise<void>((resolve) => {
+    gsap.timeline({ onComplete: resolve })
+      .to(copy, { opacity: 0, duration: KNOBS.picFade * d, ease: 'power1.inOut' }, 0)
+      .to(reveal, { v: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, 0)
+      .to([indoor, holly, wine, flamesEl], { opacity: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, 0)
+      .to(scene, { ...camera(false), duration: KNOBS.zoomOut * d, ease: 'power2.inOut' }, 0)
+      .set(loader, { autoAlpha: 0 })
+    if (!reduce) {
+      gsap.to(hollyWrap, { rotation: 0.7, skewX: 0.5, duration: 9, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+      gsap.to(hollyWrap, { y: 3, x: 2, duration: 12.75, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+    }
+    twinkle.start()
+  })
+  $('#stage').classList.add('steaming')
+  startParallax()
+  createMenu($('#menu'), reduce).show()
+}
+
+// Parallax: pointer, horizontal scroll/trackpad and touch-drag nudge the view. Far layer and near layer
+// move in opposite directions so the window feels like a real opening.
+// Shift scales with 1/distance: window edge ~1.5m, scene ~15m, so far moves roughly a tenth of near.
+const FAR = { x: 3, y: 1.2 }, NEAR = { x: 30, y: 12 }
+const look = { x: 0, y: 0 }   // target, -1..1
+const eased = { x: 0, y: 0 }
+let parallaxOn = false
+
+function startParallax() {
+  if (reduce) return
+  parallaxOn = true
+  const clamp = (v: number) => Math.max(-1, Math.min(1, v))
+  addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return
+    look.x = clamp((e.clientX / innerWidth - 0.5) * 2)
+    look.y = clamp((e.clientY / innerHeight - 0.5) * 2)
+  })
+  addEventListener('wheel', (e) => {
+    e.preventDefault()
+    look.x = clamp(look.x + (e.deltaX || (e.shiftKey ? e.deltaY : 0)) / 500)
+  }, { passive: false })
+  let drag: number | null = null
+  addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') drag = e.clientX })
+  addEventListener('pointermove', (e) => {
+    if (drag === null) return
+    look.x = clamp(look.x + (e.clientX - drag) / 300)
+    drag = e.clientX
+  })
+  addEventListener('pointerup', () => { drag = null })
+  addEventListener('deviceorientation', (e) => {
+    if (e.gamma != null) look.x = clamp(e.gamma / 25)
+  })
+  gsap.ticker.add(() => {
+    eased.x += (look.x - eased.x) * 0.06
+    eased.y += (look.y - eased.y) * 0.06
+    gsap.set('.pic', { x: eased.x * FAR.x, y: eased.y * FAR.y })
+    gsap.set('#near', { x: -eased.x * NEAR.x, y: -eased.y * NEAR.y })
+  })
+}
+
+void run()

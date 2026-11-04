@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Resume &amp; Cover Letter</title>
+  <link rel="icon" type="image/png" sizes="48x48" href="./assets/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="./assets/favicon.png">
+  <link rel="apple-touch-icon" href="./assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="stage" aria-hidden="true">
+    <div id="scene">
+      <div class="pic">
+        <img id="bg" alt="">
+        <canvas id="scene-snow"></canvas>
+      </div>
+      <div id="near">
+      <img id="indoor" alt="">
+      <div class="light soft fixed"><i></i></div>
+      <div class="light soft"><i></i></div>
+      <div class="light lift"><i></i></div>
+      <div id="hollywrap">
+        <img id="holly" alt="" hidden>
+        <div class="light soft hl fixed"><i></i></div>
+        <div class="light soft hl"><i></i></div>
+        <div class="light lift hl"><i></i></div>
+      </div>
+      <img id="wine" alt="">
+      <img class="steam s1" alt="" hidden>
+      <img class="steam s2" alt="" hidden>
+      <canvas id="flames" width="1200" height="675"></canvas>
+      </div>
+    </div>
+  </div>
+  <aside id="menu" aria-label="Portfolio menu" hidden></aside>
+  <button id="sound" type="button" hidden aria-pressed="false" aria-label="Mute ambient sound">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M3 9v6h4l5 4V5L7 9z"/><path class="wave" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="slash" d="M4 4l16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+  <div id="loader">
+    <div class="wash"></div>
+    <canvas id="loader-snow"></canvas>
+    <div class="copy">
+      <h1 class="sr-only">Welcome to The Resume &amp; Cover Letter</h1>
+      <img src="./assets/pub-sign.webp" alt="">
+      <button id="enter-pub" type="button" disabled aria-label="Opening the pub">
+        <span id="entry-label" aria-live="polite">Just opening up...</span><span id="entry-arrow" class="arrow" aria-hidden="true" hidden>↓</span>
+      </button>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
