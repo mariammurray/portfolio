@@ -55,7 +55,10 @@
       var show = function (msg) { var l = label(); if (l) l.textContent = msg }
       addEventListener('error', function (e) { show('Error: ' + (e.message || 'script failed') + (e.lineno ? ' (' + e.lineno + ')' : '')) })
       addEventListener('unhandledrejection', function (e) { show('Error: ' + (e.reason && e.reason.message || e.reason)) })
-      setTimeout(function () { if (!window.__appStarted) show('Script did not start. Try reloading.') }, 6000)
+      setTimeout(function () {
+        if (!window.__appStarted) show('Script did not start. Try reloading.')
+        else if (label().textContent === 'Just opening up...') show('Stuck at: ' + window.__step)
+      }, 8000)
     })()
   </script>
   <script type="module" src="/src/main.ts"></script>

@@ -1,5 +1,7 @@
 import gsap from 'gsap'
 ;(window as unknown as { __appStarted: boolean }).__appStarted = true
+const step = (name: string) => { (window as unknown as { __step: string }).__step = name }
+step('module start')
 import './style.css'
 import { createSnow } from './snow'
 import { createFlames } from './flames'
@@ -41,6 +43,7 @@ const reveal = { v: reduce ? 1 : 0 }   // fades the light in together with the i
 const steams = document.querySelectorAll<HTMLImageElement>('.steam')
 const hollyWrap = $('#hollywrap')
 const flamesEl = $<HTMLCanvasElement>('#flames')
+step('ambience')
 const ambience = createAmbience([{ url: soundOgg, type: 'audio/ogg; codecs=vorbis' }, { url: soundMp3, type: 'audio/mpeg' }], $<HTMLButtonElement>('#sound'))
 const ringAudio = new Audio()
 ringAudio.preload = 'auto'
@@ -75,6 +78,7 @@ function camera(zoomedIn: boolean) {
 let zoomedIn = true
 addEventListener('resize', () => gsap.set(scene, camera(zoomedIn)))
 
+step('loader snow')
 const loaderSnow = createSnow($<HTMLCanvasElement>('#loader-snow'), { count: 350, rim: 'rgba(110,140,230,.4)' })
 const enterButton = $<HTMLButtonElement>('#enter-pub')
 const enterLabel = $('#entry-label')
@@ -126,11 +130,13 @@ function waitForEntry() {
 
 async function run() {
   const started = performance.now()
+  step('loading images')
   const [bgImg, fgImages] = await Promise.all([
     load(bgUrl),
     Promise.all([load(indoorUrl), load(steamUrl), load(maskUrl), load(hollyUrl), load(lightMaskUrl), load(wineUrl)]),
   ])
   const [fgImg, steamImg, maskImg, hollyImg, lightMaskImg, wineImg] = fgImages
+  step('images loaded')
   bg.src = bgImg.src
   indoor.src = fgImg.src
   holly.src = hollyImg.src
@@ -141,6 +147,7 @@ async function run() {
   // Prepare the close-up pub view while the sign remains over the loading screen.
   createSnow($<HTMLCanvasElement>('#scene-snow'), { width: SCENE.w, height: SCENE.h, count: 700, rim: 'rgba(200,215,255,.25)', scale: 0.8 })
   gsap.set(scene, camera(true))
+  step('minimum loader wait')
 
   await wait(Math.max(0, KNOBS.minLoader - (performance.now() - started) / 1000))
   // Stage 1 -> show the picture and its snow, leaving the sign as the entry prompt.
@@ -151,6 +158,7 @@ async function run() {
       .to(copy, { color: '#f6ecd2', duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' }, 0)
   })
   loaderSnow.stop()
+  step('flames')
 
   // Finish the foreground effects before announcing that the pub is open.
   const noop = { start: () => {}, stop: () => {} }
@@ -168,8 +176,10 @@ async function run() {
       ;(l.firstElementChild as HTMLElement).style.transform = `scale(${scale})`
     }
   }), noop)
+  step('twinkle')
   const twinkle = guard('twinkle', () => createTwinkle(hollyWrap, lightMaskImg, reduce), noop)
 
+  step('ready')
   enterLabel.textContent = 'Open for business'
   enterButton.setAttribute('aria-label', 'Enter the pub')
   enterArrow.hidden = false
