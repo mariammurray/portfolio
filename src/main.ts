@@ -243,9 +243,12 @@ function startParallax() {
     drag = e.clientX
   })
   addEventListener('pointerup', () => { drag = null })
-  addEventListener('deviceorientation', (e) => {
-    if (e.gamma != null) look.x = clamp(e.gamma / 25)
-  })
+  // gyro tilt makes the view drift constantly in the hand, so it is only used where there is no touch input
+  if (!matchMedia('(pointer: coarse)').matches) {
+    addEventListener('deviceorientation', (e) => {
+      if (e.gamma != null) look.x = clamp(e.gamma / 25)
+    })
+  }
   gsap.ticker.add(() => {
     eased.x += (look.x - eased.x) * 0.06
     eased.y += (look.y - eased.y) * 0.06
