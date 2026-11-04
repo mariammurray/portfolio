@@ -13,7 +13,7 @@ export const SECTIONS: Section[] = [
         project: {
           title: 'GRN X Ltd – Founding Developer (Contract)',
           body: [
-            'Built the frontend of a web platform from scratch for a pre-launch startup, shipping features including marketplace flows, multi-project tracking, user profiles/portfolios, and chat groups. Often delivering fixes same-day and building & iterating on larger features within weeks.',
+            'One of two founding developers, owned and built the frontend of a web platform from scratch for a pre-launch startup, shipping features including marketplace flows, multi-project tracking, user profiles/portfolios, and chat groups. Often delivering fixes same-day and building & iterating on larger features within weeks.',
             'Consistently met deadlines for client and industry demos, translating founder mockups and specs directly into React/TypeScript code and writing tests to ensure they meet standards.',
             'Integrated Stripe (for in-platform payments), Mapbox and 2 internal REST APIs with backend engineering, collaborating on architecture decisions across the stack.',
           ],
@@ -43,7 +43,7 @@ export const SECTIONS: Section[] = [
         },
       },
       {
-        label: 'Who Probably Wrote On It', desc: 'Who Probably Wrote On It – interactive analysis app',
+        label: 'Who Probably Wrote On It', desc: 'Mathematically determining your favourite member of One Direction with the Spotify API',
         href: 'https://mariammurray.github.io/whoprobablywroteonit/',
         project: {
           title: 'Who probably wrote on it? | An analysis of One Direction',
@@ -102,8 +102,8 @@ export const LINKS: (Entry & { href: string })[] = [
 export const SPECIALS = [
   { label: 'Customer-focused building', note: 'Demoed to clients, turned founder specs into shipped features' },
   { label: 'API integrations', note: "Including integrating Stripe and building internal REST APIs" },
-  { label: 'React + TypeScript', note: 'Sole frontend owner: tested, responsive, accessible' },
-  { label: 'Troubleshooting', note: 'Same-day fixes at GRN X, 20-30 cases a day at City Hall' },
+  { label: 'React + TypeScript', note: 'Built tested, responsive, and accessible interfaces as sole frontend owner.' },
+  { label: 'Troubleshooting', note: 'Both technical debugging and customer-facing problem-solving'},
 ]
 
 export const EDUCATION = [

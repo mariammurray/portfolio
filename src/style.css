@@ -6,13 +6,13 @@
 html, body { height: 100%; overflow: hidden; overscroll-behavior: none; background: var(--blue); }
 
 #stage { position: fixed; inset: 0; overflow: hidden; }
-#scene { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; transform-origin: 0 0; opacity: 0; }
+#scene { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; transform-origin: 0 0; opacity: 0; contain: paint; }
 #scene > img, #scene > canvas, .pic, #near, #near > img, #near > canvas, #hollywrap, .light { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
 /* the baked-in blue frame of background.webp is cropped away: only the picture shows */
 .pic { clip-path: inset(0 103px 101px 119px); }
 .pic img, .pic canvas { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
 #indoor, #holly, #wine { opacity: 0; }
-#indoor, #holly, #wine, #flames, #hollywrap, .light, .twinkle { will-change: opacity; }
+#indoor, #holly, #wine, #flames, #hollywrap, .light, .twinkle { will-change: auto; }
 #hollywrap { transform-origin: 600px 0; pointer-events: none; }
 #holly { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
 /* Photoshop-style Soft Light, confined to the indoor art by using its alpha as a mask */
