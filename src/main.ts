@@ -1,4 +1,5 @@
 import gsap from 'gsap'
+;(window as unknown as { __appStarted: boolean }).__appStarted = true
 import './style.css'
 import { createSnow } from './snow'
 import { createFlames } from './flames'

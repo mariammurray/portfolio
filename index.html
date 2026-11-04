@@ -7,9 +7,6 @@
   <link rel="icon" type="image/png" sizes="48x48" href="./assets/favicon-48.png">
   <link rel="icon" type="image/png" sizes="256x256" href="./assets/favicon.png">
   <link rel="apple-touch-icon" href="./assets/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="stage" aria-hidden="true">
@@ -51,6 +48,16 @@
       </button>
     </div>
   </div>
+  <script>
+    // Plain (non-module) script so it still runs if the app bundle fails. Shows what went wrong on screen.
+    (function () {
+      var label = function () { return document.getElementById('entry-label') }
+      var show = function (msg) { var l = label(); if (l) l.textContent = msg }
+      addEventListener('error', function (e) { show('Error: ' + (e.message || 'script failed') + (e.lineno ? ' (' + e.lineno + ')' : '')) })
+      addEventListener('unhandledrejection', function (e) { show('Error: ' + (e.reason && e.reason.message || e.reason)) })
+      setTimeout(function () { if (!window.__appStarted) show('Script did not start. Try reloading.') }, 6000)
+    })()
+  </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
