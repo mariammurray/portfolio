@@ -47,12 +47,14 @@ const ringSource = [{ url: ringOgg, type: 'audio/ogg; codecs=vorbis' }, { url: r
 ringAudio.src = ringSource.find((source) => ringAudio.canPlayType(source.type))?.url ?? ringMp3
 ringAudio.load()
 
-const load = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+const loadOnce = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
   const img = new Image()
   img.onload = () => resolve(img)
-  img.onerror = reject
+  img.onerror = () => reject(new Error(`Failed to load ${src}`))
   img.src = src
 })
+// retry once so a single dropped request on a flaky connection doesn't strand the loading screen
+const load = (src: string) => loadOnce(src).catch(() => loadOnce(src))
 const wait = (s: number) => new Promise<void>((resolve) => setTimeout(resolve, s * 1000))
 
 // camera: scene pixels -> viewport. zoomed in = picture fills the screen, zoomed out = whole scene covers it
@@ -150,7 +152,11 @@ async function run() {
   loaderSnow.stop()
 
   // Finish the foreground effects before announcing that the pub is open.
-  const flameAnimation = createFlames(flamesEl, fgImg, maskImg, (n) => {
+  const noop = { start: () => {}, stop: () => {} }
+  const guard = <T>(what: string, make: () => T, fallback: T): T => {
+    try { return make() } catch (error) { console.error(`${what} failed`, error); return fallback }
+  }
+  const flameAnimation = guard('flames', () => createFlames(flamesEl, fgImg, maskImg, (n) => {
     const k = Math.max(0, Math.min(1, (n * 2.2 + 1) / 2))   // 0..1 flicker level
     const scale = LIGHT.min + (LIGHT.max - LIGHT.min) * k
     for (const l of lights) {
@@ -160,8 +166,8 @@ async function run() {
       l.style.opacity = String(reveal.v * strength)
       ;(l.firstElementChild as HTMLElement).style.transform = `scale(${scale})`
     }
-  })
-  const twinkle = createTwinkle(hollyWrap, lightMaskImg, reduce)
+  }), noop)
+  const twinkle = guard('twinkle', () => createTwinkle(hollyWrap, lightMaskImg, reduce), noop)
 
   enterLabel.textContent = 'Open for business'
   enterButton.setAttribute('aria-label', 'Enter the pub')
@@ -234,4 +240,7 @@ function startParallax() {
   })
 }
 
-void run()
+run().catch((error: unknown) => {
+  console.error('Pub failed to open', error)
+  enterLabel.textContent = 'Something went wrong. Please reload.'
+})
