@@ -1,5 +1,7 @@
 interface Flake { x: number; y: number; r: number; vy: number; sway: number; phase: number; a: number }
 
+const MAX_PIXELS = 2_000_000
+
 // Soft white flake with a faint blue rim so it stays visible on the white preliminary screen.
 function sprite(rim: string) {
   const s = 32, c = document.createElement('canvas')
@@ -39,8 +41,12 @@ export function createSnow(canvas: HTMLCanvasElement, opts: { width?: number; he
     dpr = Math.min(devicePixelRatio || 1, 2)
     w = opts.width ?? canvas.clientWidth
     h = opts.height ?? canvas.clientHeight
-    canvas.width = Math.round(w * dpr * (opts.width ? 2 : 1))
-    canvas.height = Math.round(h * dpr * (opts.height ? 2 : 1))
+    let sx = dpr * (opts.width ? 2 : 1), sy = dpr * (opts.height ? 2 : 1)
+    // flakes are soft sprites, so a capped backing store looks the same; huge canvases stall phones
+    const cap = Math.sqrt(MAX_PIXELS / (w * sx * h * sy))
+    if (cap < 1) { sx *= cap; sy *= cap }
+    canvas.width = Math.round(w * sx)
+    canvas.height = Math.round(h * sy)
     flakes = Array.from({ length: opts.count }, () => make(true))
   }
 
