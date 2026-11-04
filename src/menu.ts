@@ -226,6 +226,35 @@ export function createMenu(root: HTMLElement, reduce: boolean) {
   addEventListener('pointerup', endDrag, true)
   addEventListener('pointercancel', endDrag, true)
 
+  // pulling down on the list while it sits at the top lowers the menu (touch events keep firing while the
+  // browser handles the scroll, unlike pointer events, which it cancels)
+  let pull: { y: number; lift: number; active: boolean } | null = null
+  const endPull = (e: TouchEvent) => {
+    const p = pull
+    pull = null
+    if (!p?.active) return
+    const dy = (e.changedTouches[0]?.clientY ?? p.y) - p.y
+    suppressClick = true
+    setTimeout(() => { suppressClick = false }, 60)
+    setLift(dy > 30 || lift < 0.5 ? 0 : 1, true)
+  }
+  frontScroll.addEventListener('touchstart', (e) => {
+    pull = mobile.matches && !collapsed() ? { y: e.touches[0].clientY, lift, active: false } : null
+  }, { passive: true })
+  frontScroll.addEventListener('touchmove', (e) => {
+    if (!pull) return
+    const y = e.touches[0].clientY
+    if (!pull.active) {
+      if (frontScroll.scrollTop > 0 || y < pull.y - 4) { pull = null; return }
+      if (y - pull.y < 12) return
+      pull.active = true
+      pull.y = y
+    }
+    setLift(pull.lift - (y - pull.y) / range(), false)
+  }, { passive: true })
+  frontScroll.addEventListener('touchend', endPull)
+  frontScroll.addEventListener('touchcancel', endPull)
+
   // scrolling up from the bottom edge raises the menu; scrolling over the header lowers it again
   addEventListener('wheel', (e) => {
     if (!shown || !mobile.matches) return

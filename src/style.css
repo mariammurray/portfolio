@@ -3,7 +3,7 @@
 
 :root { --blue: #011b5e; --cream: #f6ecd2; }
 * { box-sizing: border-box; margin: 0; }
-html, body { height: 100%; overflow: hidden; background: var(--blue); }
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; background: var(--blue); }
 
 #stage { position: fixed; inset: 0; overflow: hidden; }
 #scene { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; transform-origin: 0 0; opacity: 0; }
@@ -12,6 +12,7 @@ html, body { height: 100%; overflow: hidden; background: var(--blue); }
 .pic { clip-path: inset(0 103px 101px 119px); }
 .pic img, .pic canvas { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
 #indoor, #holly, #wine { opacity: 0; }
+#indoor, #holly, #wine, #flames, #hollywrap, .light, .twinkle { will-change: opacity; }
 #hollywrap { transform-origin: 600px 0; pointer-events: none; }
 #holly { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
 /* Photoshop-style Soft Light, confined to the indoor art by using its alpha as a mask */

@@ -87,9 +87,9 @@ export const SECTIONS: Section[] = [
 export const APPETIZERS: Section = {
   title: 'More',
   entries: [
-    { label: 'Toronto City Hall', desc: 'Constituent casework: 20-30 cases a day, 40% solved on the spot' },
-    { label: 'Hospitality & retail', desc: 'Learning the stock, reading the customer (brandy in the mulled wine)' },
-    { label: 'Universal Music Group', desc: 'Archiving, plus a tracking system that saved the team an hour a day' },
+    { label: 'Hospitality & retail', desc: 'Building rapport, supporting the brand, reading the customer' },
+    { label: 'Universal Music Group', desc: 'Archiving, created a digital tracking system for the team and automated repetitive tasks' },
+    { label: 'Toronto City Hall', desc: 'Liaising across departments to resolve constituent issues, escalating when necessary'}
   ],
 }
 

@@ -102,9 +102,14 @@
   #menu .tilt, #menu .tilt:hover, #menu .tilt:focus-within { transform: rotateZ(-1.5deg); transform-origin: 50% 100%; }
   #menu .face { padding-top: 12px; }
   #sound { top: 16px; bottom: auto; }
-  #menu .menu-head { cursor: grab; }
+  #menu .menu-head { cursor: grab; touch-action: none; }
+  #menu h2 { letter-spacing: .1em; font-size: 1rem; }
+  #menu h2::before, #menu h2::after { margin: 0 .3em; }
+  #menu .face { padding-left: 28px; padding-right: 18px; }
+  #menu .back { padding-left: 18px; padding-right: 28px; }
+  #menu .scroll { padding-left: 0; padding-right: 2px; }
   #menu .handle { display: block; position: absolute; inset: 0; border: 0; background: none; cursor: pointer; }
-  #menu .menu-head::after { content: '▲'; position: absolute; right: 2px; top: 6px; font-size: .7rem; color: var(--blue); opacity: .6; transition: transform .3s; }
+  #menu .menu-head::after { content: '▲'; position: absolute; right: 2px; top: 6px; font-size: .7rem; color: var(--blue); opacity: .6; transition: transform .3s; pointer-events: none; }
   #menu:not(.collapsed) .menu-head::after { transform: rotate(180deg); }
   #menu.collapsed .scroll { overflow: hidden; }
 }
