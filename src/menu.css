@@ -72,7 +72,7 @@
 #menu .menu-links { position: relative; z-index: 1; display: flex; flex: 0 0 100%; margin-top: 0; padding: 0 0 2px; }
 #menu .menu-link { flex: 1; min-width: 0; text-align: center; }
 #menu a { color: var(--blue); text-underline-offset: 3px; }
-#menu .menu-links a { color: var(--ink); font-style: italic; font-size: 1.1rem; }
+#menu .menu-links a { color: color-mix(in srgb, var(--ink) 75%, transparent); font-style: italic; font-size: 1.1rem; }
 #menu a:focus-visible, #menu .back-btn:focus-visible, #menu .handle:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
 
 #menu .back-btn { align-self: flex-start; margin: 2px 0 8px; padding: 6px 4px; border: 0; background: none; color: var(--blue); font: italic 1.1rem 'IM Fell English', Georgia, serif; cursor: pointer; }

@@ -14,7 +14,7 @@ export const SECTIONS: Section[] = [
           title: 'GRN X Ltd – Founding Developer (Contract)',
           body: [
             'One of two founding developers, owned and built the frontend of a web platform from scratch for a pre-launch startup, shipping features including marketplace flows, multi-project tracking, user profiles/portfolios, and chat groups. Often delivering fixes same-day and building & iterating on larger features within weeks.',
-            'Consistently met deadlines for client and industry demos, translating founder mockups and specs directly into React/TypeScript code and writing tests to ensure they meet standards.',
+            'Consistently met deadlines for client and industry demos, translating founder mockups and specs into React/TypeScript components and writing tests to ensure they meet standards.',
             'Integrated Stripe (for in-platform payments), Mapbox and 2 internal REST APIs with backend engineering, collaborating on architecture decisions across the stack.',
           ],
           links: [
@@ -30,7 +30,7 @@ export const SECTIONS: Section[] = [
     title: 'Personal Projects',
     entries: [
       {
-        label: 'WSL Fantasy Stats', desc: "Women's Super League fantasy football statistics web app",
+        label: 'WSL Fantasy Stats', desc: "Women's Super League fantasy football statistics dashboard, reverse-engineered from official site to reveal more insights",
         href: 'https://mariammurray.github.io/WSL-Fantasy-Stats/',
         project: {
           title: 'WSL Fantasy Dashboard',
@@ -49,7 +49,9 @@ export const SECTIONS: Section[] = [
           title: 'Who probably wrote on it? | An analysis of One Direction',
           body: [
             "Using a very serious statistical analysis of One Direction writing credits, this site allows users to connect their spotify and submit their liked songs (or enter a public playlist) to determine which member of one direction's writing they truly like the best.",
-            'Repo contains an explanation of the harmonic points system, alphabetization considerations, and more information.',
+            'Uses a harmonic weighted points system and takes into consideration instances where some of the members are credited in alphabetical order instead of by contribution, example shown in the repo ReadMe.',
+            'Clicking on contributor names in the ranking reveals pictochart visualizations of their contribution on each included song, which have attached aria labels for screen readers.'
+            
           ],
           links: [['Site', 'https://mariammurray.github.io/whoprobablywroteonit/'], ['GitHub', 'https://github.com/mariammurray/whoprobablywroteonit']],
         },

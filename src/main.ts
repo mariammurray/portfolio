@@ -143,6 +143,8 @@ async function run() {
   holly.hidden = false
   wine.src = wineImg.src
   steams.forEach((s) => { s.src = steamImg.src; s.hidden = false })
+  // decode up front so layers don't pop in tile by tile on first paint
+  await Promise.all([bg, indoor, holly, wine, ...Array.from(steams)].map((img) => img.decode().catch(() => {})))
 
   // Prepare the close-up pub view while the sign remains over the loading screen.
   createSnow($<HTMLCanvasElement>('#scene-snow'), { width: SCENE.w, height: SCENE.h, count: 700, rim: 'rgba(200,215,255,.25)', scale: 0.8 })
@@ -153,7 +155,7 @@ async function run() {
   // Stage 1 -> show the picture and its snow, leaving the sign as the entry prompt.
   await new Promise<void>((resolve) => {
     gsap.timeline({ onComplete: resolve })
-      .to(scene, { opacity: 1, duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' })
+      // the scene is always painted beneath the opaque wash; fading the wash avoids group-fading the whole scene
       .to([wash, '#loader-snow'], { opacity: 0, duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' }, 0)
       .to(copy, { color: '#f6ecd2', duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' }, 0)
   })
@@ -177,7 +179,8 @@ async function run() {
     }
   }), noop)
   step('twinkle')
-  const twinkle = guard('twinkle', () => createTwinkle(hollyWrap, lightMaskImg, reduce), noop)
+  // twinkles sit mostly off-screen on portrait (mobile) viewports, so skip them there
+  const twinkle = matchMedia('(orientation: portrait)').matches ? noop : guard('twinkle', () => createTwinkle(hollyWrap, lightMaskImg, reduce), noop)
 
   step('ready')
   enterLabel.textContent = 'Open for business'
