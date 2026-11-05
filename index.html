@@ -51,16 +51,14 @@
     </div>
   </div>
   <script>
-    // Plain (non-module) script so it still runs if the app bundle fails. Shows what went wrong on screen.
+    // Plain (non-module) script so it still runs if the app bundle fails to load.
     (function () {
-      var label = function () { return document.getElementById('entry-label') }
-      var show = function (msg) { var l = label(); if (l) l.textContent = msg }
-      addEventListener('error', function (e) { show('Error: ' + (e.message || 'script failed') + (e.lineno ? ' (' + e.lineno + ')' : '')) })
-      addEventListener('unhandledrejection', function (e) { show('Error: ' + (e.reason && e.reason.message || e.reason)) })
-      setTimeout(function () {
-        if (!window.__appStarted) show('Script did not start. Try reloading.')
-        else if (label().textContent === 'Just opening up...') show('Stuck at: ' + window.__step)
-      }, 8000)
+      var fail = function () {
+        var l = document.getElementById('entry-label')
+        if (l && l.textContent === 'Just opening up...') l.textContent = 'Sorry, something went wrong. Please reload the page.'
+      }
+      addEventListener('error', fail)
+      addEventListener('unhandledrejection', fail)
     })()
   </script>
   <script type="module" src="/src/main.ts"></script>

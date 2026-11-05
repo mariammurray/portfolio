@@ -19,6 +19,37 @@ function externalLink(label: string, href: string, cls?: string) {
   return a
 }
 
+function socialIcon(label: string) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('viewBox', '0 0 24 24')
+  svg.setAttribute('aria-hidden', 'true')
+  svg.setAttribute('focusable', 'false')
+
+  const paths: Record<string, string> = {
+    GitHub: 'M12 .297a12 12 0 0 0-3.79 23.385c.6.111.82-.261.82-.577v-2.234c-3.338.726-4.043-1.416-4.043-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.729.083-.729 1.205.084 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.998.108-.776.418-1.305.762-1.605-2.665-.304-5.466-1.332-5.466-5.93 0-1.31.469-2.381 1.236-3.221-.124-.303-.536-1.524.117-3.176 0 0 1.008-.323 3.3 1.23a11.5 11.5 0 0 1 6.006 0c2.29-1.553 3.296-1.23 3.296-1.23.655 1.652.243 2.873.12 3.176.77.84 1.235 1.911 1.235 3.221 0 4.61-2.805 5.624-5.478 5.921.43.372.814 1.102.814 2.222v3.293c0 .319.216.694.825.576A12 12 0 0 0 12 .297z',
+    LinkedIn: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.35V9h3.414v1.561h.049c.476-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM6.119 20.452H2.555V9h3.564v11.452z',
+  }
+
+  if (label === 'Email') {
+    for (const d of ['M3 5.5h18v13H3z', 'm3 6.5 9 7 9-7']) {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+      path.setAttribute('d', d)
+      path.setAttribute('fill', 'none')
+      path.setAttribute('stroke', 'currentColor')
+      path.setAttribute('stroke-width', '1.8')
+      path.setAttribute('stroke-linecap', 'round')
+      path.setAttribute('stroke-linejoin', 'round')
+      svg.append(path)
+    }
+  } else {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+    path.setAttribute('d', paths[label])
+    path.setAttribute('fill', 'currentColor')
+    svg.append(path)
+  }
+  return svg
+}
+
 function header() {
   const head = el('header', 'menu-head')
   const logo = el('img', 'menu-logo')
@@ -28,14 +59,15 @@ function header() {
   const links = el('nav', 'menu-links')
   links.setAttribute('aria-label', 'Contact and social links')
   for (const l of LINKS) {
-    const item = el('div', 'menu-link')
     const a = externalLink(l.label, l.href)
     a.title = l.desc
     a.setAttribute('aria-label', l.desc)
-    item.append(a)
-    links.append(item)
+    a.replaceChildren(socialIcon(l.label))
+    links.append(a)
   }
-  head.append(links, logo, name)
+  const top = el('div', 'menu-top')
+  top.append(links, el('div', 'menu-owner', 'Maria Murray'))
+  head.append(top, logo, name)
   return head
 }
 

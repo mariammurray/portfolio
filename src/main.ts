@@ -1,7 +1,4 @@
 import gsap from 'gsap'
-;(window as unknown as { __appStarted: boolean }).__appStarted = true
-const step = (name: string) => { (window as unknown as { __step: string }).__step = name }
-step('module start')
 import './style.css'
 import { createSnow } from './snow'
 import { createFlames } from './flames'
@@ -25,13 +22,15 @@ import { createMenu } from './menu'
 const KNOBS = {
   minLoader: 1.6,      // minimum time the opening screen stays before entry is enabled
   picFade: 1.6,
-  zoomOut: 3.2,
+  zoomOut: 4.2,
+  signFade: 1.2,       // sign fades out before the foreground fades in
   fgFade: 1.4,
 }
 // picture area inside background.webp (the rest is the blue frame)
 const PIC = { x: 119 + 50, y: 25, w: 978 - 100, h: 574 - 50 }   // inset so the slanted edges stay off-screen
 const MUG_X = 815   // scene x of the mug
 const SCENE = { w: 1200, h: 675 }
+const MOBILE_BACKGROUND_SHIFT = 160
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
 const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!
@@ -44,11 +43,11 @@ const lit = Array.from(document.querySelectorAll<HTMLImageElement>('.lit'))
 const lights = Array.from(document.querySelectorAll<HTMLElement>('.light'))
 const GLOW = 0.4   // strength of each soft-light layer (static + flickering); they add up where they overlap
 const LIFT = 0.25   // strength of the screen layer relative to the soft-light layer
+const PEAK = 0.8   // desktop only: flicker peaks at this fraction of full strength (1 = original)
 const reveal = { v: reduce ? 1 : 0 }   // fades the light in together with the indoor layeri
 const steams = document.querySelectorAll<HTMLImageElement>('.steam')
 const hollyWrap = $('#hollywrap')
 const flamesEl = $<HTMLCanvasElement>('#flames')
-step('ambience')
 const ambience = createAmbience([{ url: soundOgg, type: 'audio/ogg; codecs=vorbis' }, { url: soundMp3, type: 'audio/mpeg' }], $<HTMLButtonElement>('#sound'))
 const ringAudio = new Audio()
 ringAudio.preload = 'auto'
@@ -83,7 +82,6 @@ function camera(zoomedIn: boolean) {
 let zoomedIn = true
 addEventListener('resize', () => gsap.set(scene, camera(zoomedIn)))
 
-step('loader snow')
 const loaderSnow = createSnow($<HTMLCanvasElement>('#loader-snow'), { count: 350, rim: 'rgba(110,140,230,.4)' })
 const enterButton = $<HTMLButtonElement>('#enter-pub')
 const enterLabel = $('#entry-label')
@@ -134,13 +132,11 @@ function waitForEntry() {
 
 async function run() {
   const started = performance.now()
-  step('loading images')
   const [bgImg, fgImages] = await Promise.all([
     load(bgUrl),
     Promise.all([load(indoorUrl), load(steamUrl), load(maskUrl), load(hollyUrl), load(lightMaskUrl), load(wineUrl)]),
   ])
   const [fgImg, steamImg, maskImg, hollyImg, lightMaskImg, wineImg] = fgImages
-  step('images loaded')
   bg.src = bgImg.src
   indoor.src = fgImg.src
   holly.src = hollyImg.src
@@ -154,7 +150,8 @@ async function run() {
   // Prepare the close-up pub view while the sign remains over the loading screen.
   createSnow($<HTMLCanvasElement>('#scene-snow'), { width: SCENE.w, height: SCENE.h, count: 700, rim: 'rgba(200,215,255,.25)', scale: 0.8 })
   gsap.set(scene, camera(true))
-  step('minimum loader wait')
+  // on mobile, slide the backdrop so the sign's transparent areas sit over the snow instead of a dark tree
+  if (baked) gsap.set(bg, { x: MOBILE_BACKGROUND_SHIFT })
 
   await wait(Math.max(0, KNOBS.minLoader - (performance.now() - started) / 1000))
   // Stage 1 -> show the picture and its snow, leaving the sign as the entry prompt.
@@ -165,7 +162,6 @@ async function run() {
       .to(copy, { color: '#f6ecd2', duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' }, 0)
   })
   loaderSnow.stop()
-  step('flames')
 
   // Finish the foreground effects before announcing that the pub is open.
   const noop = { start: () => {}, stop: () => {} }
@@ -182,19 +178,21 @@ async function run() {
     for (const l of lights) {
       if (l.classList.contains('fixed')) { l.style.opacity = String(reveal.v * GLOW); continue }
       const lift = l.classList.contains('lift')
-      const strength = lift ? LIFT * (0.4 + 0.6 * k) : GLOW * (0.6 + 0.4 * k)
+      const strength = lift ? LIFT * (0.4 + (PEAK - 0.4) * k) : GLOW * (0.6 + (PEAK - 0.6) * k)
       l.style.opacity = String(reveal.v * strength)
     }
   }), noop)
-  step('twinkle')
   // twinkles sit mostly off-screen on portrait (mobile) viewports, so skip them there
   const twinkle = matchMedia('(orientation: portrait)').matches ? noop : guard('twinkle', () => createTwinkle(hollyWrap, lightMaskImg, reduce), noop)
 
-  step('ready')
-  enterLabel.textContent = 'Open for business'
   enterButton.setAttribute('aria-label', 'Enter the pub')
-  enterArrow.hidden = false
   enterButton.disabled = false
+  // crossfade the label: old text out, new text and arrow in
+  await gsap.to(enterLabel, { opacity: 0, duration: reduce ? 0 : 0.5, ease: 'power1.in' })
+  enterLabel.textContent = 'Come on in'
+  enterArrow.hidden = false
+  gsap.set(enterArrow, { opacity: 0 })
+  gsap.to([enterLabel, enterArrow], { opacity: 1, duration: reduce ? 0 : 0.7, ease: 'power1.out' })
   ambience.show()
   void ambience.play()
   await waitForEntry()
@@ -203,12 +201,13 @@ async function run() {
   flameAnimation.start()
   zoomedIn = false
   const d = reduce ? 0 : 1
-  // fades and zoom-out run together as one continuous movement
+  // the zoom-out runs continuously while the sign fades out, then the foreground fades in
   await new Promise<void>((resolve) => {
     const tl = gsap.timeline({ onComplete: resolve })
-    tl.to(reveal, { v: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, 0)
-      .to(copy, { opacity: 0, duration: KNOBS.picFade * d, ease: 'power1.inOut' }, 0)
-      .to([indoor, holly, wine, flamesEl], { opacity: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, 0)
+    const fgStart = KNOBS.signFade * d   // the sign finishes fading before the foreground starts
+    tl.to(copy, { opacity: 0, duration: KNOBS.signFade * d, ease: 'power1.inOut' }, 0)
+      .to(reveal, { v: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, fgStart)
+      .to([indoor, holly, wine, flamesEl], { opacity: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, fgStart)
       .to(scene, { ...camera(false), duration: KNOBS.zoomOut * d, ease: 'power2.inOut' }, 0)
       .set(loader, { autoAlpha: 0 })
     if (!reduce) {
@@ -267,5 +266,5 @@ function startParallax() {
 
 run().catch((error: unknown) => {
   console.error('Pub failed to open', error)
-  enterLabel.textContent = 'Something went wrong. Please reload.'
+  enterLabel.textContent = 'Sorry, something went wrong. Please reload the page.'
 })

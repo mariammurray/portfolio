@@ -78,7 +78,7 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; backgrou
 #enter-pub .arrow[hidden] { display: none; }
 #enter-pub:not(:disabled):hover .arrow { transform: translateY(4px); }
 #enter-pub:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
-#enter-pub .arrow { display: inline-block; font-size: 1.3em; transition: transform .2s ease; }
+#enter-pub .arrow { display: inline-block; font-size: 1.3em; line-height: 0; transition: transform .2s ease; }
 
 @media (prefers-reduced-motion: reduce) { .steam { animation: none; opacity: .5; } }
 
