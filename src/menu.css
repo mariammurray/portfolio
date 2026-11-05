@@ -99,7 +99,9 @@
   #menu.dragging { transition: none; }
   #menu .tilt, #menu .tilt:hover, #menu .tilt:focus-within { transform: rotateZ(-1.5deg); transform-origin: 50% 100%; }
   #menu .face { padding-top: 12px; }
-  #menu .dish-desc, #menu .edu .dish-desc, #menu .special-note { font-size: .9rem; }
+  #menu .dish-desc { font-size: .88rem; }
+  #menu .edu .dish-desc, #menu .special-note { font-size: .9rem; }
+  #menu .menu-links a { font-size: .9rem; }
   #sound { top: 16px; bottom: auto; }
   #menu .menu-head { cursor: grab; touch-action: none; }
   #menu h2 { letter-spacing: .1em; font-size: 1rem; }
