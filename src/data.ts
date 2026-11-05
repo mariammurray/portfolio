@@ -91,6 +91,7 @@ export const APPETIZERS: Section = {
   entries: [
     { label: 'Hospitality & retail', desc: 'Building rapport, supporting the brand, reading the customer' },
     { label: 'Universal Music Group', desc: 'Archiving, creating a digital tracking system for the team and automating repetitive tasks' },
+    { label: 'CBC Music', desc: 'Preparing radio show music logs for legal compliance' },
     { label: 'Toronto City Hall', desc: 'Liaising across departments to resolve constituent issues, escalating when necessary'}
   ],
 }
