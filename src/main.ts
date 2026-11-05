@@ -8,6 +8,8 @@ import { createFlames } from './flames'
 import bgUrl from '../assets/background.webp'
 import indoorUrl from '../assets/indoor-no-light.webp'
 import hollyUrl from '../assets/holly.webp'
+import indoorLitUrl from '../assets/indoor-lit.webp'
+import hollyLitUrl from '../assets/holly-lit.webp'
 import wineUrl from '../assets/wine.webp'
 import steamUrl from '../assets/steam.webp'
 import maskUrl from '../assets/candles mask.webp'
@@ -28,7 +30,6 @@ const KNOBS = {
 }
 // picture area inside background.webp (the rest is the blue frame)
 const PIC = { x: 119 + 50, y: 25, w: 978 - 100, h: 574 - 50 }   // inset so the slanted edges stay off-screen
-const LIGHT = { min: 0.85, max: 1 }   // glow scale range, anchored at the bottom-right corner
 const MUG_X = 815   // scene x of the mug
 const SCENE = { w: 1200, h: 675 }
 
@@ -36,6 +37,10 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
 const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!
 const scene = $('#scene'), loader = $('#loader'), wash = $('#loader .wash'), copy = $('#loader .copy')
 const bg = $<HTMLImageElement>('#bg'), indoor = $<HTMLImageElement>('#indoor'), holly = $<HTMLImageElement>('#holly'), wine = $<HTMLImageElement>('#wine')
+// portrait/mobile uses pre-baked lit images faded with plain opacity; blend-mode layers glitch there
+const baked = matchMedia('(orientation: portrait)').matches
+$('#stage').classList.toggle('baked', baked)
+const lit = Array.from(document.querySelectorAll<HTMLImageElement>('.lit'))
 const lights = Array.from(document.querySelectorAll<HTMLElement>('.light'))
 const GLOW = 0.4   // strength of each soft-light layer (static + flickering); they add up where they overlap
 const LIFT = 0.25   // strength of the screen layer relative to the soft-light layer
@@ -90,9 +95,9 @@ function waitForEntry() {
       enterButton.removeEventListener('click', enter)
       removeEventListener('wheel', onWheel)
       removeEventListener('keydown', onKeydown)
-      removeEventListener('pointerdown', onPointerDown)
-      removeEventListener('pointerup', onPointerUp)
-      removeEventListener('pointercancel', onPointerCancel)
+      removeEventListener('touchstart', onTouchStart)
+      removeEventListener('touchend', onTouchEnd)
+      removeEventListener('touchcancel', onTouchCancel)
     }
     const enter = () => {
       if (enterButton.disabled) return
@@ -109,22 +114,21 @@ function waitForEntry() {
         enter()
       }
     }
+    // touch events rather than pointer events: the browser cancels pointer events once it claims a swipe
     let touchStartY: number | null = null
-    const onPointerDown = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') touchStartY = event.clientY
-    }
-    const onPointerUp = (event: PointerEvent) => {
-      if (touchStartY !== null && touchStartY - event.clientY > 40) enter()
+    const onTouchStart = (event: TouchEvent) => { touchStartY = event.touches[0].clientY }
+    const onTouchEnd = (event: TouchEvent) => {
+      if (touchStartY !== null && touchStartY - event.changedTouches[0].clientY > 40) enter()
       touchStartY = null
     }
-    const onPointerCancel = () => { touchStartY = null }
+    const onTouchCancel = () => { touchStartY = null }
 
     enterButton.addEventListener('click', enter)
     addEventListener('wheel', onWheel, { passive: true })
     addEventListener('keydown', onKeydown)
-    addEventListener('pointerdown', onPointerDown)
-    addEventListener('pointerup', onPointerUp)
-    addEventListener('pointercancel', onPointerCancel)
+    addEventListener('touchstart', onTouchStart, { passive: true })
+    addEventListener('touchend', onTouchEnd)
+    addEventListener('touchcancel', onTouchCancel)
   })
 }
 
@@ -143,8 +147,9 @@ async function run() {
   holly.hidden = false
   wine.src = wineImg.src
   steams.forEach((s) => { s.src = steamImg.src; s.hidden = false })
+  if (baked) { lit[0].src = indoorLitUrl; lit[1].src = hollyLitUrl }
   // decode up front so layers don't pop in tile by tile on first paint
-  await Promise.all([bg, indoor, holly, wine, ...Array.from(steams)].map((img) => img.decode().catch(() => {})))
+  await Promise.all([bg, indoor, holly, wine, ...(baked ? lit : []), ...Array.from(steams)].map((img) => img.decode().catch(() => {})))
 
   // Prepare the close-up pub view while the sign remains over the loading screen.
   createSnow($<HTMLCanvasElement>('#scene-snow'), { width: SCENE.w, height: SCENE.h, count: 700, rim: 'rgba(200,215,255,.25)', scale: 0.8 })
@@ -169,13 +174,16 @@ async function run() {
   }
   const flameAnimation = guard('flames', () => createFlames(flamesEl, fgImg, maskImg, (n) => {
     const k = Math.max(0, Math.min(1, (n * 2.2 + 1) / 2))   // 0..1 flicker level
-    const scale = LIGHT.min + (LIGHT.max - LIGHT.min) * k
+    if (baked) {
+      const o = String(reveal.v * (0.7 + 0.3 * k))   // the baked image is full strength; k=0 is about 70% of it
+      for (const l of lit) l.style.opacity = o
+      return
+    }
     for (const l of lights) {
       if (l.classList.contains('fixed')) { l.style.opacity = String(reveal.v * GLOW); continue }
       const lift = l.classList.contains('lift')
       const strength = lift ? LIFT * (0.4 + 0.6 * k) : GLOW * (0.6 + 0.4 * k)
       l.style.opacity = String(reveal.v * strength)
-      ;(l.firstElementChild as HTMLElement).style.transform = `scale(${scale})`
     }
   }), noop)
   step('twinkle')
@@ -196,13 +204,10 @@ async function run() {
   zoomedIn = false
   const d = reduce ? 0 : 1
   // fades and zoom-out run together as one continuous movement
-  // the blended light layers flicker while the scene is zooming on mobile, so there they wait for the zoom to finish and fade in slowly
-  const lateLight = matchMedia('(orientation: portrait)').matches && !reduce
-  if (lateLight) gsap.to(reveal, { v: 1, duration: 2.5, delay: KNOBS.zoomOut, ease: 'power1.inOut' })
   await new Promise<void>((resolve) => {
     const tl = gsap.timeline({ onComplete: resolve })
-    if (!lateLight) tl.to(reveal, { v: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, 0)
-    tl.to(copy, { opacity: 0, duration: KNOBS.picFade * d, ease: 'power1.inOut' }, 0)
+    tl.to(reveal, { v: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, 0)
+      .to(copy, { opacity: 0, duration: KNOBS.picFade * d, ease: 'power1.inOut' }, 0)
       .to([indoor, holly, wine, flamesEl], { opacity: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, 0)
       .to(scene, { ...camera(false), duration: KNOBS.zoomOut * d, ease: 'power2.inOut' }, 0)
       .set(loader, { autoAlpha: 0 })

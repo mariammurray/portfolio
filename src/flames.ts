@@ -1,5 +1,5 @@
 const PAD = 6
-const GLOW_SLOWDOWN = 5   // the light's flicker runs this many times slower than the flames themselves
+const GLOW_SLOWDOWN = 6.7   // the light's flicker runs this many times slower than the flames themselves
 
 // Flames are baked into foreground.webp. The mask selects them; each one is redrawn on top,
 // stretched/swayed/brightened. Stretch never drops below 1 so the original pixels stay covered.

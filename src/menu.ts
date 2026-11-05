@@ -57,7 +57,11 @@ export function createMenu(root: HTMLElement, reduce: boolean) {
   handle.type = 'button'
   handle.setAttribute('aria-expanded', 'false')
   handle.setAttribute('aria-label', 'Open the menu')
-  frontHead.append(handle)
+  const arrow = el('button', 'handle-arrow', '▲')
+  arrow.type = 'button'
+  arrow.setAttribute('aria-hidden', 'true')
+  arrow.tabIndex = -1
+  frontHead.append(handle, arrow)
   const frontScroll = el('div', 'scroll')
   front.append(frontHead, frontScroll)
 
@@ -190,7 +194,8 @@ export function createMenu(root: HTMLElement, reduce: boolean) {
   setFlipped(false)
   syncState()
 
-  handle.addEventListener('click', () => {
+  // the arrow sits above the contact links, so it needs its own button rather than relying on the handle underneath
+  for (const btn of [handle, arrow]) btn.addEventListener('click', () => {
     if (suppressClick) return
     setLift(collapsed() ? 1 : 0, true)
   })
