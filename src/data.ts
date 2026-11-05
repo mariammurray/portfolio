@@ -9,7 +9,7 @@ export const SECTIONS: Section[] = [
     title: 'Work',
     entries: [
       {
-        label: 'GRN X', desc: 'Founding Developer (Contract)', href: 'https://galactik.grnx.app/',
+        label: 'GRN X', desc: 'Founding Developer (Contract) since June 2025', href: 'https://galactik.grnx.app/',
         project: {
           title: 'GRN X Ltd – Founding Developer (Contract)',
           body: [
@@ -30,7 +30,7 @@ export const SECTIONS: Section[] = [
     title: 'Personal Projects',
     entries: [
       {
-        label: 'WSL Fantasy Stats', desc: "Women's Super League fantasy football statistics dashboard, reverse-engineered from official site to reveal more insights",
+        label: 'WSL Fantasy Stats', desc: "Women's Super League fantasy football statistics dashboard, reverse-engineered from official site to reveal fun facts, auto-updates each match week",
         href: 'https://mariammurray.github.io/WSL-Fantasy-Stats/',
         project: {
           title: 'WSL Fantasy Dashboard',

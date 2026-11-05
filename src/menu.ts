@@ -86,17 +86,6 @@ export function createMenu(root: HTMLElement, reduce: boolean) {
   }
   for (const section of SECTIONS) appendSection(section)
 
-  const specials = el('div', 'course specials')
-  specials.append(el('h2', undefined, "Specials"))
-  const specialList = el('ul')
-  for (const s of SPECIALS) {
-    const item = el('li', 'special')
-    item.append(el('span', 'dish-name', s.label), el('span', 'special-note', s.note))
-    specialList.append(item)
-  }
-  specials.append(specialList)
-  frontScroll.append(specials)
-
   const education = el('div', 'course education')
   education.append(el('h2', undefined, 'Education'))
   const eduList = el('ul')
@@ -107,6 +96,17 @@ export function createMenu(root: HTMLElement, reduce: boolean) {
   }
   education.append(eduList)
   frontScroll.append(education)
+
+  const specials = el('div', 'course specials')
+  specials.append(el('h2', undefined, "Specials"))
+  const specialList = el('ul')
+  for (const s of SPECIALS) {
+    const item = el('li', 'special')
+    item.append(el('span', 'dish-name', s.label), el('span', 'special-note', s.note))
+    specialList.append(item)
+  }
+  specials.append(specialList)
+  frontScroll.append(specials)
 
   appendSection(APPETIZERS, false)
 
