@@ -53,7 +53,7 @@
 #menu .dish-name { font-size: 1.25rem; }
 #menu .leader { border-bottom: 2px dotted rgba(43,29,18,.55); transform: translateY(-4px); min-width: 12px; }
 #menu .dish-go { font-size: 1.1rem; color: var(--blue); transition: transform .2s; }
-#menu .dish-desc { grid-column: 1 / -1; font-style: italic; font-size: .88rem; opacity: .75; }
+#menu .dish-desc { grid-column: 1 / -1; font-style: italic; font-size: 1rem; opacity: .75; }
 #menu .dish:not(.dish-static):hover, #menu .dish:not(.dish-static):focus-visible { background: rgba(1,27,94,.08); outline: none; }
 #menu .dish:focus-visible { box-shadow: 0 0 0 2px var(--blue); }
 #menu .dish:hover .dish-go, #menu .dish:focus-visible .dish-go { transform: translateX(4px); }
@@ -63,9 +63,9 @@
 #menu .education { margin-top: 18px; }
 #menu .edu { padding: 4px 0; }
 #menu .edu .dish-name { display: block; font-size: 1.1rem; }
-#menu .edu .dish-desc { display: block; font-style: italic; font-size: .9rem; opacity: .65; }
+#menu .edu .dish-desc { display: block; font-style: italic; font-size: 1rem; opacity: .65; }
 #menu .special .dish-name { display: block; font-size: 1.1rem; }
-#menu .special-note { display: block; font-style: italic; font-size: .9rem; line-height: 1.3; opacity: .65; }
+#menu .special-note { display: block; font-style: italic; font-size: 1rem; line-height: 1.3; opacity: .65; }
 
 #menu .menu-links { position: relative; z-index: 1; display: flex; flex: 0 0 100%; margin-top: 0; padding: 10px 0 2px; }
 #menu .menu-link { flex: 1; min-width: 0; text-align: center; }
