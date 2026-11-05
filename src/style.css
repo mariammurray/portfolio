@@ -5,7 +5,7 @@
 * { box-sizing: border-box; margin: 0; }
 html, body { height: 100%; overflow: hidden; overscroll-behavior: none; background: var(--blue); }
 
-#stage { position: fixed; inset: 0; overflow: hidden; }
+#stage { position: fixed; inset: 0; overflow: hidden; background: #05070f; }
 #scene { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; transform-origin: 0 0; }
 #scene > img, #scene > canvas, .pic, #near, #near > img, #near > canvas, #hollywrap, .light { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
 /* the baked-in blue frame of background.webp is cropped away: only the picture shows */
@@ -13,6 +13,8 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; backgrou
 .pic img, .pic canvas { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
 #indoor, #holly, #wine { opacity: 0; }
 #indoor, #holly, #wine, #flames, #hollywrap, .light, .twinkle { will-change: opacity; }
+/* raster once at the zoomed-in size and scale the texture, instead of re-rastering (and dropping tiles) every frame of the zoom */
+#scene, .pic, #near { will-change: transform; }
 #hollywrap { transform-origin: 600px 0; pointer-events: none; }
 #holly { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
 /* Photoshop-style Soft Light, confined to the indoor art by using its alpha as a mask */
