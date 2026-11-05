@@ -196,10 +196,13 @@ async function run() {
   zoomedIn = false
   const d = reduce ? 0 : 1
   // fades and zoom-out run together as one continuous movement
+  // the blended light layers flicker while the scene is zooming on mobile, so there they wait for the zoom to finish and fade in slowly
+  const lateLight = matchMedia('(orientation: portrait)').matches && !reduce
+  if (lateLight) gsap.to(reveal, { v: 1, duration: 2.5, delay: KNOBS.zoomOut, ease: 'power1.inOut' })
   await new Promise<void>((resolve) => {
-    gsap.timeline({ onComplete: resolve })
-      .to(copy, { opacity: 0, duration: KNOBS.picFade * d, ease: 'power1.inOut' }, 0)
-      .to(reveal, { v: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, 0)
+    const tl = gsap.timeline({ onComplete: resolve })
+    if (!lateLight) tl.to(reveal, { v: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, 0)
+    tl.to(copy, { opacity: 0, duration: KNOBS.picFade * d, ease: 'power1.inOut' }, 0)
       .to([indoor, holly, wine, flamesEl], { opacity: 1, duration: KNOBS.fgFade * d, ease: 'power1.inOut' }, 0)
       .to(scene, { ...camera(false), duration: KNOBS.zoomOut * d, ease: 'power2.inOut' }, 0)
       .set(loader, { autoAlpha: 0 })
