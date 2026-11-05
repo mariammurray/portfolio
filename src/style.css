@@ -42,9 +42,9 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; backgrou
 }
 #hollywrap .twinkle { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; mix-blend-mode: screen; filter: drop-shadow(0 0 3px rgba(255,200,110,.9)); pointer-events: none; }
 #flames { pointer-events: none; opacity: 0; }
-.steam { opacity: 0; transform-origin: 815px 440px; animation: steam 7s ease-in-out infinite paused; pointer-events: none; visibility: hidden; }
-.steam.s2 { animation-delay: 3.5s;   /* positive, so the second plume also fades in from nothing */
-   animation-duration: 8.5s; }
+.steam { opacity: 0; transform-origin: 815px 440px; animation: steam 8.75s ease-in-out infinite paused; pointer-events: none; visibility: hidden; }
+.steam.s2 { animation-delay: 4.375s;   /* positive, so the second plume also fades in from nothing */
+   animation-duration: 10.625s; }
 #stage.steaming .steam { visibility: visible; animation-play-state: running; }
 @keyframes steam {
   0%   { opacity: 0;   transform: translate(0, 18px) scale(.85); }

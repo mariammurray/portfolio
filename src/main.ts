@@ -211,8 +211,8 @@ async function run() {
       .to(scene, { ...camera(false), duration: KNOBS.zoomOut * d, ease: 'power2.inOut' }, 0)
       .set(loader, { autoAlpha: 0 })
     if (!reduce) {
-      gsap.to(hollyWrap, { rotation: 0.7, skewX: 0.5, duration: 9, ease: 'sine.inOut', yoyo: true, repeat: -1 })
-      gsap.to(hollyWrap, { y: 3, x: 2, duration: 12.75, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+      gsap.to(hollyWrap, { rotation: 1.4, skewX: 1.2, duration: 9, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+      gsap.to(hollyWrap, { y: 3, x: 7, duration: 12.75, ease: 'sine.inOut', yoyo: true, repeat: -1 })
     }
     twinkle.start()
   })
@@ -224,9 +224,9 @@ async function run() {
 // Parallax: pointer, horizontal scroll/trackpad and touch-drag nudge the view. Far layer and near layer
 // move in opposite directions so the window feels like a real opening.
 // Shift scales with 1/distance: window edge ~1.5m, scene ~15m, so far moves roughly a tenth of near.
-const FAR = { x: 3, y: 1.2 }, NEAR = { x: 30, y: 12 }
-const look = { x: 0, y: 0 }   // target, -1..1
-const eased = { x: 0, y: 0 }
+const FAR = { x: -5 }, NEAR = { x: 30 }
+const look = { x: 0 }   // target, -1..1
+const eased = { x: 0 }
 let parallaxOn = false
 
 function startParallax() {
@@ -236,20 +236,24 @@ function startParallax() {
   addEventListener('pointermove', (e) => {
     if (e.pointerType === 'touch') return
     look.x = clamp((e.clientX / innerWidth - 0.5) * 2)
-    look.y = clamp((e.clientY / innerHeight - 0.5) * 2)
   })
   addEventListener('wheel', (e) => {
     e.preventDefault()
     look.x = clamp(look.x + (e.deltaX || (e.shiftKey ? e.deltaY : 0)) / 500)
   }, { passive: false })
+  // touch events rather than pointer events: the browser cancels pointer events once it claims a swipe
   let drag: number | null = null
-  addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') drag = e.clientX })
-  addEventListener('pointermove', (e) => {
+  addEventListener('touchstart', (e) => {
+    drag = (e.target as Element).closest('#menu') ? null : e.touches[0].clientX
+  }, { passive: true })
+  addEventListener('touchmove', (e) => {
     if (drag === null) return
-    look.x = clamp(look.x + (e.clientX - drag) / 300)
-    drag = e.clientX
-  })
-  addEventListener('pointerup', () => { drag = null })
+    const x = e.touches[0].clientX
+    look.x = clamp(look.x - (x - drag) / 300)
+    drag = x
+  }, { passive: true })
+  addEventListener('touchend', () => { drag = null })
+  addEventListener('touchcancel', () => { drag = null })
   // gyro tilt makes the view drift constantly in the hand, so it is only used where there is no touch input
   if (!matchMedia('(pointer: coarse)').matches) {
     addEventListener('deviceorientation', (e) => {
@@ -258,9 +262,8 @@ function startParallax() {
   }
   gsap.ticker.add(() => {
     eased.x += (look.x - eased.x) * 0.06
-    eased.y += (look.y - eased.y) * 0.06
-    gsap.set('.pic', { x: eased.x * FAR.x, y: eased.y * FAR.y })
-    gsap.set('#near', { x: -eased.x * NEAR.x, y: -eased.y * NEAR.y })
+    gsap.set('.pic', { x: eased.x * FAR.x })
+    gsap.set('#near', { x: -eased.x * NEAR.x })
   })
 }
 
