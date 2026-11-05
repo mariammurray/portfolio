@@ -175,7 +175,7 @@ async function run() {
   const flameAnimation = guard('flames', () => createFlames(flamesEl, fgImg, maskImg, (n) => {
     const k = Math.max(0, Math.min(1, (n * 2.2 + 1) / 2))   // 0..1 flicker level
     if (baked) {
-      const o = String(reveal.v * (0.7 + 0.3 * k))   // the baked image is full strength; k=0 is about 70% of it
+      const o = String(reveal.v * (0.4 + 0.6 * k))   // the baked image is full strength; k=0 dims it to 40%, a wide range because the small viewport hides subtle flicker
       for (const l of lit) l.style.opacity = o
       return
     }

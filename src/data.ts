@@ -57,7 +57,7 @@ export const SECTIONS: Section[] = [
         },
       },
       {
-        label: 'SettleUp', desc: 'Sports betting app prototype with social component, live room updates and odds tracking via websocket',
+        label: 'SettleUp', desc: 'Prototype of a sports betting app with social component, live room updates and odds tracking via websocket',
         href: 'https://github.com/mariammurray/settleUp',
         project: {
           title: 'SettleUp | Social sports betting prototype',
@@ -90,7 +90,7 @@ export const APPETIZERS: Section = {
   title: 'More',
   entries: [
     { label: 'Hospitality & retail', desc: 'Building rapport, supporting the brand, reading the customer' },
-    { label: 'Universal Music Group', desc: 'Archiving, created a digital tracking system for the team and automated repetitive tasks' },
+    { label: 'Universal Music Group', desc: 'Archiving, creating a digital tracking system for the team and automating repetitive tasks' },
     { label: 'Toronto City Hall', desc: 'Liaising across departments to resolve constituent issues, escalating when necessary'}
   ],
 }
@@ -102,7 +102,7 @@ export const LINKS: (Entry & { href: string })[] = [
 ]
 
 export const SPECIALS = [
-  { label: 'Customer-focused building', note: 'Demoed to clients, turned founder specs into shipped features' },
+  { label: 'Customer-focused building', note: 'Demoed to clients, turned founder vision and specs into functional, well-presented UI'},
   { label: 'API integrations', note: "Including integrating Stripe and building internal REST APIs" },
   { label: 'React + TypeScript', note: 'Built tested, responsive, and accessible interfaces as sole frontend owner.' },
   { label: 'Troubleshooting', note: 'Both technical debugging and customer-facing problem-solving'},
