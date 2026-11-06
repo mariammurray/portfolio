@@ -62,8 +62,8 @@ export const SECTIONS: Section[] = [
         project: {
           title: 'SettleUp | Social sports betting prototype',
           body: [
-            'Built a full-stack sports betting app prototype with a social component as a capstone project.',
-            'Implemented Socket.IO to handle event-driven user interactions, with odds that update for everyone in a shared room. Live API-powered odds recalculate as bets and accumulated odds shift with game events.',
+            'Built a full-stack sports betting app prototype with a social component as a capstone project.  The idea was that you could place a bet, invite your friends to place theirs, and then see who wins and who loses.',
+            'Used Socket.IO to synchronize bets across shared rooms, and a WebSocket connection to update scores and recalculate odds during the game for everyone in the shared room.',
             'Built with React and Tailwind CSS on the frontend, Node.js and Express on the backend, APIFootball for sports data, and Socket.IO for live updates.',
           ],
           links: [['GitHub', 'https://github.com/mariammurray/settleUp'], ['Site', 'https://settleup-prpg.onrender.com/']],
@@ -73,7 +73,7 @@ export const SECTIONS: Section[] = [
         label: 'Caldeira Media', desc: 'Motion-based landing page for a fictional film production company',
         href: 'https://mariammurray.github.io/caldeira-media/',
         project: {
-          title: 'Caldeira Media | Parallax landing page',
+          title: 'Caldeira Media | Landing page',
           body: [
             'I love working in Photoshop, and wanted to build something motion-based. I took a free Wikimedia photo and made a landing page for a fictional film production company, cutting out layers by hand and filling in hidden areas to create the effect of moving through and around the landscape.',
             'I also masked the grass, ocean and clouds so they animate independently. The film theme carries through the loading screen and the custom cursor.',
