@@ -36,8 +36,8 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
 const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!
 const scene = $('#scene'), loader = $('#loader'), wash = $('#loader .wash'), copy = $('#loader .copy')
 const bg = $<HTMLImageElement>('#bg'), indoor = $<HTMLImageElement>('#indoor'), holly = $<HTMLImageElement>('#holly'), wine = $<HTMLImageElement>('#wine')
-// portrait/mobile uses pre-baked lit images faded with plain opacity; blend-mode layers glitch there
-const baked = matchMedia('(orientation: portrait)').matches
+// pre-baked lit images faded with plain opacity, on all viewports; set to false to try the live blend-mode layers
+const baked = true
 $('#stage').classList.toggle('baked', baked)
 const lit = Array.from(document.querySelectorAll<HTMLImageElement>('.lit'))
 const lights = Array.from(document.querySelectorAll<HTMLElement>('.light'))
@@ -151,7 +151,7 @@ async function run() {
   createSnow($<HTMLCanvasElement>('#scene-snow'), { width: SCENE.w, height: SCENE.h, count: 700, rim: 'rgba(200,215,255,.25)', scale: 0.8 })
   gsap.set(scene, camera(true))
   // on mobile, slide the backdrop so the sign's transparent areas sit over the snow instead of a dark tree
-  if (baked) gsap.set(bg, { x: MOBILE_BACKGROUND_SHIFT })
+  if (matchMedia('(orientation: portrait)').matches) gsap.set(bg, { x: MOBILE_BACKGROUND_SHIFT })
 
   await wait(Math.max(0, KNOBS.minLoader - (performance.now() - started) / 1000))
   // Stage 1 -> show the picture and its snow, leaving the sign as the entry prompt.
@@ -160,6 +160,7 @@ async function run() {
       // the scene is always painted beneath the opaque wash; fading the wash avoids group-fading the whole scene
       .to([wash, '#loader-snow'], { opacity: 0, duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' }, 0)
       .to(copy, { color: '#f6ecd2', duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' }, 0)
+      .to(enterButton, { '--glow': 'rgba(9,16,34,1)', duration: reduce ? 0 : KNOBS.picFade, ease: 'power1.inOut' }, 0)
   })
   loaderSnow.stop()
 
@@ -171,7 +172,7 @@ async function run() {
   const flameAnimation = guard('flames', () => createFlames(flamesEl, fgImg, maskImg, (n) => {
     const k = Math.max(0, Math.min(1, (n * 2.2 + 1) / 2))   // 0..1 flicker level
     if (baked) {
-      const o = String(reveal.v * (0.2 + 0.6 * k))   // ranges 20%..80% of the baked glow; wide because the small viewport hides subtle flicker
+      const o = String(reveal.v * k)   // ranges 0%..100% of the baked glow
       for (const l of lit) l.style.opacity = o
       return
     }
@@ -182,8 +183,7 @@ async function run() {
       l.style.opacity = String(reveal.v * strength)
     }
   }), noop)
-  // twinkles sit mostly off-screen on portrait (mobile) viewports, so skip them there
-  const twinkle = matchMedia('(orientation: portrait)').matches ? noop : guard('twinkle', () => createTwinkle(hollyWrap, lightMaskImg, reduce), noop)
+  const twinkle = guard('twinkle', () => createTwinkle(hollyWrap, lightMaskImg, reduce), noop)
 
   enterButton.setAttribute('aria-label', 'Enter the pub')
   enterButton.disabled = false

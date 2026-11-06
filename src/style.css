@@ -72,7 +72,8 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; backgrou
   display: flex; align-items: center; justify-content: center; gap: .55rem; margin: .8rem auto 0; padding: .5rem .85rem;
   border: 0; background: transparent; color: inherit; font: italic clamp(1.5rem, 3.4vw, 2.5rem) 'IM Fell English', Georgia, 'Times New Roman', serif;
   cursor: pointer; pointer-events: auto;
-  text-shadow: 0 0 6px #091022, 0 0 12px #091022, 0 0 20px #091022, 0 0 32px #091022;
+  --glow: rgba(9,16,34,0);   /* no glow while the white wash is up; faded in once the picture shows */
+  text-shadow: 0 0 6px var(--glow), 0 0 12px var(--glow), 0 0 20px var(--glow), 0 0 32px var(--glow);
 }
 #enter-pub:disabled { cursor: wait; }
 #enter-pub .arrow[hidden] { display: none; }
