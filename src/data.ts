@@ -50,7 +50,7 @@ export const SECTIONS: Section[] = [
           body: [
             "Using a very serious statistical analysis of One Direction writing credits, this site allows users to connect their spotify and submit their liked songs (or enter a public playlist) to determine which member of one direction's writing they truly like the best.",
             'Uses a harmonic weighted points system and takes into consideration instances where some of the members are credited in alphabetical order instead of by contribution, example shown in the repo ReadMe.',
-            'Clicking on contributor names in the ranking reveals pictochart visualizations of their contribution on each included song, which have attached aria labels for screen readers.'
+            'Clicking on contributor names in the ranking reveals pictograph visualizations of their contribution on each included song, which have attached aria labels for screen readers.'
             
           ],
           links: [['Site', 'https://mariammurray.github.io/whoprobablywroteonit/'], ['GitHub', 'https://github.com/mariammurray/whoprobablywroteonit']],

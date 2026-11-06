@@ -37,10 +37,13 @@
 #menu .back::after { inset: 9px 20px 9px 9px; }
 #menu .face[inert] { pointer-events: none; }
 
-#menu .menu-head { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; padding: 4px 10px 12px; border-bottom: 1px solid rgba(1,27,94,.3); margin-bottom: 8px; }
-#menu .menu-logo { height: 58px; width: auto; display: block; }
-#menu .menu-name { font-size: 1.45rem; line-height: 1.05; font-style: italic; color: var(--blue); white-space: nowrap; }
-@media (orientation: landscape) { #menu .menu-name { font-size: 2rem; } #menu .menu-head { row-gap: 0; } #menu .menu-logo { margin-bottom: 12px; } }
+#menu .menu-head { --t: 1.45rem; --o: .625rem; position: relative; display: grid; justify-items: center; row-gap: 4px; padding: 4px 10px 0; border-bottom: 1px solid rgba(1,27,94,.3); margin-bottom: 8px; }
+#menu .menu-top, #menu .menu-logo { grid-row: 1; grid-column: 1; }   /* the logo shares the links row, top-aligned, centred */
+#menu .menu-top { align-self: start; justify-self: stretch; }
+#menu .menu-logo { height: calc((var(--t) + var(--o)) * 1.575); width: auto; display: block; margin-block: 5px; }
+#menu .menu-title { text-align: center; margin-bottom: 12px; }
+#menu .menu-name { font-size: var(--t); line-height: 1.05; font-style: italic; color: var(--blue); white-space: nowrap; }
+@media (orientation: landscape) { #menu .menu-head { --t: 2rem; } }
 #menu .handle, #menu .handle-arrow { display: none; }
 
 #menu .scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 4px 6px 4px 2px; scrollbar-width: thin; scrollbar-color: rgba(1,27,94,.4) transparent; }
@@ -68,7 +71,8 @@
 #menu .special-note { display: block; font-style: italic; font-size: 1rem; line-height: 1.3; opacity: .65; }
 
 #menu .menu-top { flex: 0 0 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 4px; }
-#menu .menu-owner { font-style: italic; font-size: 1rem; color: color-mix(in srgb, var(--ink) 75%, transparent); }
+#menu .menu-owner { font-size: var(--o); line-height: 1.05; font-weight: 400; text-transform: uppercase; letter-spacing: .1em; color: color-mix(in srgb, var(--ink) 75%, transparent); white-space: nowrap; }
+#menu .menu-owner::before, #menu .menu-owner::after { content: '✦'; margin: 0 .6em; font-size: .7em; vertical-align: .15em; opacity: .6; }
 #menu .menu-links { position: relative; z-index: 1; display: flex; gap: 4px; }
 #menu a { color: var(--blue); text-underline-offset: 3px; }
 #menu .menu-links a { display: inline-flex; align-items: center; justify-content: center; padding: 6px; border-radius: 4px; color: color-mix(in srgb, var(--ink) 75%, transparent); transition: color .2s, background-color .2s; }
@@ -78,7 +82,7 @@
 
 #menu .back-btn { align-self: flex-start; margin: 2px 0 8px; padding: 6px 4px; border: 0; background: none; color: var(--blue); font: italic 1.1rem 'IM Fell English', Georgia, serif; cursor: pointer; }
 #menu .back-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
-#menu .detail h2 { text-align: left; text-transform: none; letter-spacing: 0; font-size: 1.55rem; line-height: 1.15; margin: 4px 0 14px; font-style: italic; }
+#menu .detail h2 { text-align: left; text-transform: none; letter-spacing: 0; font-size: 1.55rem; line-height: 1.15; margin: 4px 0 14px; padding-left: 6px; font-style: italic; }
 #menu .detail h2::before, #menu .detail h2::after { content: none; }
 #menu .detail p { font-size: 1.02rem; line-height: 1.5; margin-bottom: .8em; }
 #menu .detail p:first-of-type::first-letter { font-size: 2.6em; float: left; line-height: .85; padding: 4px 6px 0 0; color: var(--blue); }
@@ -102,12 +106,13 @@
   #menu.dragging { transition: none; }
   #menu .tilt, #menu .tilt:hover, #menu .tilt:focus-within { transform: rotateZ(-1.5deg); transform-origin: 50% 100%; }
   #menu .face { padding-top: 12px; }
-  #menu .dish-desc, #menu .menu-owner { font-size: .88rem; }
+  #menu .menu-head { --o: .55rem; }
+  #menu .dish-desc { font-size: .88rem; }
   #menu .edu .dish-desc, #menu .special-note { font-size: .9rem; }
   #menu .menu-links svg { width: .88rem; height: .88rem; }
   #sound { top: 16px; bottom: auto; }
   #menu .menu-head { cursor: grab; touch-action: none; }
-  #menu .menu-top { justify-content: flex-end; padding-right: 30px; }   /* room for the pull-up arrow */
+  #menu .menu-top { justify-content: flex-start; }   /* the pull-up arrow sits on the right */
   #menu h2 { letter-spacing: .1em; font-size: 1rem; }
   #menu h2::before, #menu h2::after { margin: 0 .3em; }
   #menu .face { padding-left: 28px; padding-right: 18px; }

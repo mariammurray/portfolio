@@ -55,7 +55,8 @@ function header() {
   const logo = el('img', 'menu-logo')
   logo.src = logoUrl
   logo.alt = ''
-  const name = el('div', 'menu-name', PUB_NAME)
+  const title = el('div', 'menu-title')
+  title.append(el('div', 'menu-name', PUB_NAME), el('div', 'menu-owner', 'Prop. Maria Murray'))
   const links = el('nav', 'menu-links')
   links.setAttribute('aria-label', 'Contact and social links')
   for (const l of LINKS) {
@@ -66,8 +67,8 @@ function header() {
     links.append(a)
   }
   const top = el('div', 'menu-top')
-  top.append(links, el('div', 'menu-owner', 'Maria Murray'))
-  head.append(top, logo, name)
+  top.append(links)
+  head.append(top, logo, title)
   return head
 }
 
