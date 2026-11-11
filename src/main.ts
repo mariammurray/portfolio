@@ -2,7 +2,8 @@ import gsap from 'gsap'
 import './style.css'
 import { createSnow } from './snow'
 import { createFlames } from './flames'
-import bgUrl from '../assets/background.webp'
+import bgUrl from '../assets/background-no-trees.webp'
+import treesUrl from '../assets/background-trees.webp'
 import indoorUrl from '../assets/indoor-no-light.webp'
 import hollyUrl from '../assets/holly.webp'
 import indoorLitUrl from '../assets/indoor-lit.webp'
@@ -26,7 +27,7 @@ const KNOBS = {
   signFade: 1.2,       // sign fades out before the foreground fades in
   fgFade: 1.4,
 }
-// picture area inside background.webp (the rest is the blue frame)
+// picture area inside the background art (the rest is the blue frame)
 const PIC = { x: 119 + 50, y: 25, w: 978 - 100, h: 574 - 50 }   // inset so the slanted edges stay off-screen
 const MUG_X = 815   // scene x of the mug
 const SCENE = { w: 1200, h: 675 }
@@ -35,7 +36,7 @@ const MOBILE_BACKGROUND_SHIFT = 160
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
 const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!
 const scene = $('#scene'), loader = $('#loader'), wash = $('#loader .wash'), copy = $('#loader .copy')
-const bg = $<HTMLImageElement>('#bg'), indoor = $<HTMLImageElement>('#indoor'), holly = $<HTMLImageElement>('#holly'), wine = $<HTMLImageElement>('#wine')
+const backdrop = $('#backdrop'), treeLayer = $('#tree-layer'), bg = $<HTMLImageElement>('#bg'), trees = $<HTMLImageElement>('#trees'), indoor = $<HTMLImageElement>('#indoor'), holly = $<HTMLImageElement>('#holly'), wine = $<HTMLImageElement>('#wine')
 // pre-baked lit images faded with plain opacity, on all viewports; set to false to try the live blend-mode layers
 const baked = true
 $('#stage').classList.toggle('baked', baked)
@@ -80,7 +81,10 @@ function camera(zoomedIn: boolean) {
   return { scale, x, y }
 }
 let zoomedIn = true
-addEventListener('resize', () => gsap.set(scene, camera(zoomedIn)))
+addEventListener('resize', () => {
+  gsap.set(scene, camera(zoomedIn))
+  renderParallax()
+})
 
 const loaderSnow = createSnow($<HTMLCanvasElement>('#loader-snow'), { count: 350, rim: 'rgba(110,140,230,.4)' })
 const enterButton = $<HTMLButtonElement>('#enter-pub')
@@ -132,12 +136,13 @@ function waitForEntry() {
 
 async function run() {
   const started = performance.now()
-  const [bgImg, fgImages] = await Promise.all([
-    load(bgUrl),
+  const [[bgImg, treesImg], fgImages] = await Promise.all([
+    Promise.all([load(bgUrl), load(treesUrl)]),
     Promise.all([load(indoorUrl), load(steamUrl), load(maskUrl), load(hollyUrl), load(lightMaskUrl), load(wineUrl)]),
   ])
   const [fgImg, steamImg, maskImg, hollyImg, lightMaskImg, wineImg] = fgImages
   bg.src = bgImg.src
+  trees.src = treesImg.src
   indoor.src = fgImg.src
   holly.src = hollyImg.src
   holly.hidden = false
@@ -145,13 +150,15 @@ async function run() {
   steams.forEach((s) => { s.src = steamImg.src; s.hidden = false })
   if (baked) { lit[0].src = indoorLitUrl; lit[1].src = hollyLitUrl }
   // decode up front so layers don't pop in tile by tile on first paint
-  await Promise.all([bg, indoor, holly, wine, ...(baked ? lit : []), ...Array.from(steams)].map((img) => img.decode().catch(() => {})))
+  await Promise.all([bg, trees, indoor, holly, wine, ...(baked ? lit : []), ...Array.from(steams)].map((img) => img.decode().catch(() => {})))
 
   // Prepare the close-up pub view while the sign remains over the loading screen.
-  createSnow($<HTMLCanvasElement>('#scene-snow'), { width: SCENE.w, height: SCENE.h, count: 700, rim: 'rgba(200,215,255,.25)', scale: 0.8 })
+  const sceneSnow = { width: SCENE.w, height: SCENE.h, count: 350, rim: 'rgba(200,215,255,.25)', scale: 0.8 }
+  createSnow($<HTMLCanvasElement>('#scene-snow-behind'), sceneSnow)
+  createSnow($<HTMLCanvasElement>('#scene-snow'), sceneSnow)
   gsap.set(scene, camera(true))
   // on mobile, slide the backdrop so the sign's transparent areas sit over the snow instead of a dark tree
-  if (matchMedia('(orientation: portrait)').matches) gsap.set(bg, { x: MOBILE_BACKGROUND_SHIFT })
+  if (matchMedia('(orientation: portrait)').matches) gsap.set([backdrop, treeLayer], { x: MOBILE_BACKGROUND_SHIFT })
 
   await wait(Math.max(0, KNOBS.minLoader - (performance.now() - started) / 1000))
   // Stage 1 -> show the picture and its snow, leaving the sign as the entry prompt.
@@ -213,6 +220,8 @@ async function run() {
     if (!reduce) {
       gsap.to(hollyWrap, { rotation: 1.4, skewX: 1.2, duration: 9, ease: 'sine.inOut', yoyo: true, repeat: -1 })
       gsap.to(hollyWrap, { y: 3, x: 7, duration: 12.75, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+      gsap.to(trees, { scaleY: 1.01, duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+      gsap.to(trees, { skewX: 0.6, duration: 6.5, ease: 'sine.inOut', yoyo: true, repeat: -1 })
     }
     twinkle.start()
   })
@@ -228,6 +237,13 @@ const FAR = { x: -5 }, NEAR = { x: 30 }
 const look = { x: 0 }   // target, -1..1
 const eased = { x: 0 }
 let parallaxOn = false
+
+function renderParallax() {
+  // In portrait, center on the former left endpoint while retaining the former right endpoint.
+  const offset = innerWidth < innerHeight ? eased.x * 2 - 1 : eased.x
+  gsap.set('.pic', { x: offset * FAR.x })
+  gsap.set('#near', { x: -offset * NEAR.x })
+}
 
 function startParallax() {
   if (reduce) return
@@ -262,11 +278,11 @@ function startParallax() {
   }
   gsap.ticker.add(() => {
     eased.x += (look.x - eased.x) * 0.06
-    gsap.set('.pic', { x: eased.x * FAR.x })
-    gsap.set('#near', { x: -eased.x * NEAR.x })
+    renderParallax()
   })
 }
 
+renderParallax()
 run().catch((error: unknown) => {
   console.error('Pub failed to open', error)
   enterLabel.textContent = 'Sorry, something went wrong. Please reload the page.'

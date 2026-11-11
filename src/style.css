@@ -8,9 +8,11 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; backgrou
 #stage { position: fixed; inset: 0; overflow: hidden; background: #05070f; }
 #scene { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; transform-origin: 0 0; }
 #scene > img, #scene > canvas, .pic, #near, #near > img, #near > canvas, #hollywrap, .light { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
-/* the baked-in blue frame of background.webp is cropped away: only the picture shows */
+/* the baked-in blue frame of the background art is cropped away: only the picture shows */
 .pic { clip-path: inset(0 103px 101px 119px); }
-.pic img, .pic canvas { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
+.pic img, .pic canvas, #backdrop, #tree-layer { position: absolute; left: 0; top: 0; width: 1200px; height: 675px; }
+/* Anchor the tree motion near the ground. */
+#trees { transform-origin: 600px 630px; will-change: transform; }
 #indoor, #holly, #wine { opacity: 0; }
 #indoor, #holly, #wine, #flames, #hollywrap, .light, .lit, .twinkle { will-change: opacity; }
 /* mobile: the glow is pre-baked into these two images and just faded, instead of live blend-mode layers */
