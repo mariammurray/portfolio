@@ -9,7 +9,7 @@ export const SECTIONS: Section[] = [
     title: 'Work',
     entries: [
       {
-        label: 'GRN X', desc: 'Founding Developer (Contract) since June 2025', href: 'https://galactik.grnx.app/',
+        label: 'GRN X', desc: 'Founding Developer (Contract) since June 2025; built the React/TypeScript frontend and Stripe, Mapbox and REST API integrations', href: 'https://galactik.grnx.app/',
         project: {
           title: 'GRN X Ltd – Founding Developer (Contract)',
           body: [
@@ -30,7 +30,7 @@ export const SECTIONS: Section[] = [
     title: 'Personal Projects',
     entries: [
       {
-        label: 'WSL Fantasy Stats', desc: "Women's Super League fantasy football statistics dashboard, reverse-engineered from official site to reveal fun facts, auto-updates each match week",
+        label: 'WSL Fantasy Stats', desc: "Auto-updating Women's Super League fantasy football dashboard built from official-site data, with weekly snapshots automated using GitHub Actions",
         href: 'https://mariammurray.github.io/WSL-Fantasy-Stats/',
         project: {
           title: 'WSL Fantasy Dashboard',
@@ -43,7 +43,7 @@ export const SECTIONS: Section[] = [
         },
       },
       {
-        label: 'Who Probably Wrote On It', desc: 'Mathematically determining your favourite member of One Direction with the Spotify API',
+        label: 'Who Probably Wrote On It', desc: 'Spotify API app that analyses One Direction writing credits to identify which member’s songs a user likes best',
         href: 'https://mariammurray.github.io/whoprobablywroteonit/',
         project: {
           title: 'Who probably wrote on it? | An analysis of One Direction',
@@ -57,7 +57,7 @@ export const SECTIONS: Section[] = [
         },
       },
       {
-        label: 'SettleUp', desc: 'Prototype of a sports betting app with social component, live room updates and odds tracking via websocket',
+        label: 'SettleUp', desc: 'Full-stack social sports betting prototype built with React, Node.js, Express and Socket.IO, with live room updates and odds tracking over WebSockets',
         href: 'https://github.com/mariammurray/settleUp',
         project: {
           title: 'SettleUp | Social sports betting prototype',
@@ -70,7 +70,7 @@ export const SECTIONS: Section[] = [
         },
       },
       {
-        label: 'Caldeira Media', desc: 'Motion-based landing page for a fictional film production company',
+        label: 'Caldeira Media', desc: 'Accessible, motion-based landing page for a fictional film production company, with hand-masked image layers animated independently',
         href: 'https://mariammurray.github.io/caldeira-media/',
         project: {
           title: 'Caldeira Media | Landing page',
